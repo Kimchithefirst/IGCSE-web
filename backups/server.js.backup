@@ -1,0 +1,411 @@
+const express = require('express');
+const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
+const mongoose = require('mongoose');
+const config = require('./config');
+const { generateSimilarQuestions } = require('./ai-question-generator');
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// MongoDB Atlas connection
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://igcse-admin:51UwmbZ2KRD1LOfQ@igcse-mock-test.jbrdwgb.mongodb.net/igcse-mock-test?retryWrites=true&w=majority&appName=IGCSE-Mock-Test';
+
+// Question Schema
+const questionSchema = new mongoose.Schema({
+  id: { type: Number, required: true, unique: true },
+  text: { type: String, required: true },
+  options: [{ 
+    _id: false,
+    text: { type: String, required: true },
+    isCorrect: { type: Boolean, required: true }
+  }],
+  correctAnswer: { type: String, required: true },
+  subject: { type: String, required: true, default: 'Physics' },
+  topics: [{ type: String }],
+  difficulty: { type: String, enum: ['easy', 'medium', 'hard', 'beginner', 'intermediate'], default: 'medium' },
+  source: {
+    paperCode: { type: String },
+    examSession: { type: String },
+    questionNumber: { type: Number },
+    originalId: { type: String }
+  },
+  metadata: {
+    importedFrom: { type: String },
+    version: { type: String }
+  }
+}, { timestamps: true });
+
+// Quiz Schema
+const quizSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  title: { type: String, required: true },
+  description: { type: String },
+  subject: { type: String, required: true },
+  timeLimit: { type: Number, default: 1800 },
+  questions: [{ type: Number, ref: 'Question' }],
+  metadata: {
+    source: {
+      paperCode: { type: String },
+      examSession: { type: String },
+      totalQuestions: { type: Number }
+    },
+    importedFrom: { type: String },
+    version: { type: String }
+  }
+}, { timestamps: true });
+
+const Question = mongoose.model('Question', questionSchema);
+const Quiz = mongoose.model('Quiz', quizSchema);
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'frontend/build')));
+
+// Initialize AI Question Generator
+const aiGenerator = { generateSimilarQuestions };
+
+// Load quiz data from MongoDB or fallback to local JSON
+let quizData = [];
+let allQuestions = [];
+
+async function loadQuizData() {
+  try {
+    // Try to load from MongoDB Atlas first
+    const quizzes = await Quiz.find().populate('questions');
+    if (quizzes.length > 0) {
+      console.log(`📚 Loaded ${quizzes.length} quizzes from MongoDB Atlas`);
+      
+      // Convert MongoDB data to the expected format
+      quizData = quizzes.map(quiz => ({
+        id: quiz.id,
+        title: quiz.title,
+        description: quiz.description,
+        subject: quiz.subject,
+        timeLimit: quiz.timeLimit,
+        questions: quiz.questions.map(q => ({
+          id: q.id,
+          text: q.text,
+          options: q.options.map((opt, index) => ({
+            [String.fromCharCode(65 + index)]: opt.text
+          })).reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+          correctAnswer: q.correctAnswer,
+          topics: q.topics,
+          difficulty: q.difficulty,
+          source: q.source
+        }))
+      }));
+      
+      // Flatten all questions for similarity search
+      allQuestions = quizzes.flatMap(quiz => 
+        quiz.questions.map(q => ({
+          id: q.id,
+          text: q.text,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+          topics: q.topics,
+          difficulty: q.difficulty,
+          source: q.source
+        }))
+      );
+      
+      return;
+    }
+  } catch (error) {
+    console.error('❌ Error loading from MongoDB:', error);
+  }
+  
+  // Fallback to local JSON files
+  console.log('⚠️  Loading fallback quiz data from local files...');
+  
+  const physicsQuestionsPath = path.join(__dirname, 'data', 'physics_questions.json');
+  
+  if (fs.existsSync(physicsQuestionsPath)) {
+    try {
+      const physicsData = JSON.parse(fs.readFileSync(physicsQuestionsPath, 'utf8'));
+      console.log(`📚 Loaded ${physicsData.length} quizzes from physics_questions.json`);
+      
+      quizData = physicsData.map(quiz => ({
+        id: quiz.paperCode,
+        title: quiz.title,
+        description: `${quiz.subject} exam paper`,
+        subject: quiz.subject,
+        timeLimit: (quiz.duration || 30) * 60,
+        questions: quiz.questions.map(q => ({
+          id: q.id,
+          text: q.text,
+          options: q.options.reduce((acc, opt, index) => {
+            acc[String.fromCharCode(65 + index)] = opt.text;
+            return acc;
+          }, {}),
+          correctAnswer: q.correctAnswer,
+          topics: q.topics,
+          difficulty: q.difficulty
+        }))
+      }));
+      
+      allQuestions = physicsData.flatMap(quiz => quiz.questions);
+      
+    } catch (error) {
+      console.error('❌ Error loading physics_questions.json:', error);
+      loadFallbackData();
+    }
+  } else {
+    loadFallbackData();
+  }
+}
+
+function loadFallbackData() {
+  console.log('⚠️  Using minimal fallback data...');
+  quizData = [{
+    id: 'fallback-igcse',
+    title: 'IGCSE Physics Sample',
+    description: 'Sample IGCSE Physics questions',
+    subject: 'Physics',
+    timeLimit: 1800,
+    questions: [{
+      id: 1,
+      text: 'What is the unit of force?',
+      options: { A: 'Newton', B: 'Joule', C: 'Watt', D: 'Pascal' },
+      correctAnswer: 'A',
+      topics: ['forces'],
+      difficulty: 'easy'
+    }]
+  }];
+  
+  allQuestions = quizData.flatMap(quiz => quiz.questions);
+}
+
+// Enhanced topic extraction
+function getQuestionTopics(questionText) {
+  const text = questionText.toLowerCase();
+  const topics = [];
+  
+  // Physics topics detection (enhanced to match import script)
+  if (text.includes('force') || text.includes('newton') || text.includes('pressure')) topics.push('forces');
+  if (text.includes('light') || text.includes('speed') || text.includes('wave') || text.includes('frequency') || text.includes('wavelength')) topics.push('waves');
+  if (text.includes('motion') || text.includes('law') || text.includes('acceleration') || text.includes('velocity')) topics.push('mechanics');
+  if (text.includes('energy') || text.includes('joule') || text.includes('power') || text.includes('work')) topics.push('energy');
+  if (text.includes('electric') || text.includes('voltage') || text.includes('current') || text.includes('resistance')) topics.push('electricity');
+  if (text.includes('heat') || text.includes('temperature') || text.includes('thermal') || text.includes('evaporation')) topics.push('thermal');
+  if (text.includes('atom') || text.includes('nuclear') || text.includes('radiation') || text.includes('molecule')) topics.push('atomic');
+  if (text.includes('magnet') || text.includes('magnetic')) topics.push('magnetism');
+  if (text.includes('pressure') || text.includes('density') || text.includes('fluid') || text.includes('liquid') || text.includes('float')) topics.push('fluids');
+  
+  return topics;
+}
+
+// Enhanced similarity calculation
+function calculateSimilarity(question1Topics, question2Topics, question1Text, question2Text) {
+  let score = 0;
+  
+  // Topic overlap (60% weight)
+  const commonTopics = question1Topics.filter(topic => question2Topics.includes(topic));
+  if (question1Topics.length > 0 && question2Topics.length > 0) {
+    const topicScore = commonTopics.length / Math.max(question1Topics.length, question2Topics.length);
+    score += topicScore * 0.6;
+  }
+  
+  // Keyword similarity (40% weight)
+  const keywords1 = question1Text.toLowerCase().match(/\b[a-z]{4,}\b/g) || [];
+  const keywords2 = question2Text.toLowerCase().match(/\b[a-z]{4,}\b/g) || [];
+  const commonKeywords = keywords1.filter(word => keywords2.includes(word));
+  if (keywords1.length > 0 && keywords2.length > 0) {
+    const keywordScore = commonKeywords.length / Math.max(keywords1.length, keywords2.length);
+    score += keywordScore * 0.4;
+  }
+  
+  return score;
+}
+
+// API Routes
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    questionsCount: allQuestions.length,
+    quizzesCount: quizData.length
+  });
+});
+
+// Get all quizzes
+app.get('/api/quizzes/igcse', (req, res) => {
+  try {
+    res.json({
+      success: true,
+      data: quizData,
+      metadata: {
+        totalQuizzes: quizData.length,
+        totalQuestions: allQuestions.length,
+        source: mongoose.connection.readyState === 1 ? 'MongoDB Atlas' : 'Local JSON'
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching quizzes:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch quizzes' });
+  }
+});
+
+// Get similar questions endpoint
+app.get('/api/questions/:id/similar', async (req, res) => {
+  try {
+    const questionId = parseInt(req.params.id);
+    console.log(`🔍 Finding similar questions for question ID: ${questionId}`);
+    
+    // Find the source question
+    let sourceQuestion = null;
+    let sourceQuizIndex = -1;
+    
+    for (let i = 0; i < quizData.length; i++) {
+      const question = quizData[i].questions.find(q => q.id === questionId);
+      if (question) {
+        sourceQuestion = question;
+        sourceQuizIndex = i;
+        break;
+      }
+    }
+    
+    if (!sourceQuestion) {
+      return res.status(404).json({
+        success: false,
+        error: 'Question not found'
+      });
+    }
+
+    const sourceTopics = getQuestionTopics(sourceQuestion.text);
+    console.log(`📋 Source question topics: [${sourceTopics.join(', ')}]`);
+    
+    // Find similar questions from database
+    const dbSimilarQuestions = [];
+    
+    allQuestions.forEach((question, index) => {
+      if (question.id === questionId) return;
+      
+      const questionTopics = getQuestionTopics(question.text);
+      const similarity = calculateSimilarity(sourceTopics, questionTopics, sourceQuestion.text, question.text);
+      
+      // Only include questions with meaningful similarity (> 0.1)
+      if (similarity > 0.1) {
+        dbSimilarQuestions.push({
+          _id: `${question.source?.paperCode || 'unknown'}_${question.id}`,
+          id: question.id,
+          text: question.text,
+          questionText: question.text,
+          type: 'multiple-choice',
+          options: Array.isArray(question.options) 
+            ? question.options.map((opt, index) => ({
+                _id: `${question.id}_opt_${String.fromCharCode(65 + index)}`,
+                text: opt.text || opt,
+                isCorrect: opt.isCorrect || false
+              }))
+            : Object.entries(question.options).map(([key, value]) => ({
+                _id: `${question.id}_opt_${key}`,
+                text: value,
+                isCorrect: key === question.correctAnswer
+              })),
+          correctAnswer: question.correctAnswer,
+          similarity: similarity,
+          commonTopics: sourceTopics.filter(topic => questionTopics.includes(topic)),
+          paperCode: question.source?.paperCode || 'unknown',
+          subject: question.subject || 'Physics',
+          generatedBy: 'Database',
+          topics: questionTopics
+        });
+      }
+    });
+    
+    // Sort by similarity and take top matches
+    dbSimilarQuestions.sort((a, b) => b.similarity - a.similarity);
+    const topDbQuestions = dbSimilarQuestions.slice(0, config.TARGET_QUESTION_COUNT);
+    
+    console.log(`📊 Found ${dbSimilarQuestions.length} similar questions in database, using top ${topDbQuestions.length}`);
+    
+    let finalQuestions = [...topDbQuestions];
+    let aiQuestions = [];
+    
+    // If we need more questions, generate with AI
+    if (finalQuestions.length < config.TARGET_QUESTION_COUNT) {
+      const needed = config.TARGET_QUESTION_COUNT - finalQuestions.length;
+      console.log(`🤖 Generating ${needed} additional questions with AI...`);
+      
+      try {
+        aiQuestions = await generateSimilarQuestions(sourceQuestion, needed);
+        finalQuestions = [...finalQuestions, ...aiQuestions];
+      } catch (error) {
+        console.error('❌ AI generation failed:', error);
+      }
+    }
+    
+    // Ensure we have exactly the target count
+    finalQuestions = finalQuestions.slice(0, config.TARGET_QUESTION_COUNT);
+    
+    const response = {
+      success: true,
+      questions: finalQuestions,
+      metadata: {
+        fromDatabase: topDbQuestions.length,
+        fromAI: aiQuestions.length,
+        targetCount: config.TARGET_QUESTION_COUNT,
+        totalSimilarInDb: dbSimilarQuestions.length
+      },
+      sourceQuestion: {
+        id: sourceQuestion.id,
+        text: sourceQuestion.text,
+        topics: sourceTopics
+      }
+    };
+    
+    console.log(`✅ Returning ${finalQuestions.length} questions (${topDbQuestions.length} from DB, ${aiQuestions.length} from AI)`);
+    res.json(response);
+    
+  } catch (error) {
+    console.error('❌ Error in similar questions endpoint:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      details: error.message
+    });
+  }
+});
+
+// Serve React app for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
+});
+
+// Connect to MongoDB Atlas and start server
+async function startServer() {
+  try {
+    await mongoose.connect(MONGODB_URI);
+    console.log('✅ Connected to MongoDB Atlas successfully!');
+    
+    // Verify data
+    const questionCount = await Question.countDocuments();
+    const quizCount = await Quiz.countDocuments();
+    console.log(`📊 Database contains: ${questionCount} questions, ${quizCount} quizzes`);
+    
+  } catch (error) {
+    console.error('❌ MongoDB Atlas connection failed:', error);
+    console.log('⚠️  Server will use fallback data...');
+  }
+  
+  // Load quiz data (from MongoDB or fallback)
+  await loadQuizData();
+  
+  // Start the server
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📊 Loaded ${quizData.length} quizzes with ${allQuestions.length} total questions`);
+    console.log(`🌐 Database: ${mongoose.connection.readyState === 1 ? 'MongoDB Atlas' : 'Local JSON fallback'}`);
+  });
+}
+
+// Start the server
+startServer().catch(console.error);
+
+module.exports = app; 

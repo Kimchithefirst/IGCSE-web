@@ -1,0 +1,1 @@
+Login -> Click "Exam Simulation" in the navbar -> Select a subject -> Answer questions -> Submit

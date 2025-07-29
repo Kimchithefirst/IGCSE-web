@@ -1,0 +1,115 @@
+<context>
+# Overview  
+The IGCSE Web Application is an interactive educational platform designed to help students prepare for their IGCSE exams. It provides comprehensive study materials, practice tests, and progress tracking for students studying for International General Certificate of Secondary Education examinations.
+
+# Core Features  
+1. **Study Materials Repository**
+   - Organized by IGCSE subjects and topics
+   - Includes notes, summaries, and explanatory content
+   - Supports multimedia content (text, images, videos)
+
+2. **Interactive Practice Tests**
+   - Subject-specific quizzes and tests
+   - Mock exam simulations with timing
+   - Instant feedback and explanations for answers
+
+3. **Progress Tracking System**
+   - Personal dashboard showing completion status
+   - Performance analytics and improvement suggestions
+   - Study schedule recommendations
+
+4. **User Management**
+   - Student accounts with personalized experiences
+   - Teacher/parent accounts for monitoring progress
+   - Authentication and profile management
+</context>
+<PRD>
+# Technical Architecture  
+1. **Frontend**
+   - React.js for component-based UI development
+   - Next.js for server-side rendering and routing
+   - Tailwind CSS for styling
+   - Responsive design for mobile and desktop access
+
+2. **Backend**
+   - Node.js/Express for API endpoints
+   - MongoDB for storing user data and progress
+   - Authentication using JWT tokens
+   - RESTful API architecture
+
+3. **Data Models**
+   - User: student profiles, authentication info, progress data
+   - Content: study materials organized by subject/topic
+   - Assessments: quizzes, practice tests, and exam simulations
+   - Analytics: performance metrics and tracking data
+
+# Development Roadmap  
+1. **Phase 1: MVP Foundation**
+   - Basic user authentication system
+   - Core content management for study materials
+   - Simple quiz functionality for one subject
+   - Basic user dashboard with minimal progress tracking
+
+2. **Phase 2: Enhanced Learning Experience**
+   - Expanded content for multiple IGCSE subjects
+   - Advanced quiz and test functionality
+   - Detailed progress analytics
+   - Improved UI/UX with responsive design
+
+3. **Phase 3: Full Platform**
+   - Complete subject coverage
+   - Advanced exam simulation
+   - Teacher/parent monitoring features
+   - Integration with additional learning resources
+
+# Logical Dependency Chain
+1. **Foundation First**
+   - Set up project structure and core dependencies
+   - Implement authentication and user management
+   - Create basic content management system
+
+2. **Content Before Assessment**
+   - Implement study materials interface
+   - Build content creation/management tools
+   - Establish content organization by subject/topic
+
+3. **Assessment and Progress**
+   - Develop quiz/test functionality
+   - Implement scoring and feedback systems
+   - Create progress tracking and analytics
+
+4. **Refinement and Expansion**
+   - Enhance UI/UX based on initial feedback
+   - Expand to additional subjects
+   - Add advanced features and optimizations
+
+# Risks and Mitigations  
+1. **Content Quality and Accuracy**
+   - Risk: Inaccurate or outdated educational content
+   - Mitigation: Implement content review process, version control for materials
+
+2. **User Engagement**
+   - Risk: Students lose interest or find platform difficult to use
+   - Mitigation: Focus on intuitive design, gamification elements, regular feedback cycles
+
+3. **Performance Under Load**
+   - Risk: System slowdown during peak exam seasons
+   - Mitigation: Implement caching, optimize database queries, consider serverless architecture
+
+4. **Data Security**
+   - Risk: Student data privacy concerns
+   - Mitigation: Implement robust security measures, ensure GDPR compliance
+
+# Appendix  
+1. **IGCSE Subject Categories**
+   - Sciences: Biology, Chemistry, Physics
+   - Mathematics
+   - Languages: English, French, Spanish
+   - Humanities: History, Geography
+   - Business and Economics
+
+2. **Learning Methodology**
+   - Based on active recall and spaced repetition
+   - Emphasis on understanding over memorization
+   - Alignment with IGCSE examination board requirements
+</PRD> 

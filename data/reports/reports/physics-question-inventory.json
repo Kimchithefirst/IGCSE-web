@@ -1,0 +1,2445 @@
+{
+  "totalFiles": 16,
+  "totalQuestions": 293,
+  "validQuestions": 95,
+  "invalidQuestions": 198,
+  "filesAnalyzed": [
+    {
+      "filename": "0625_s20_qp_11_quiz.json",
+      "paperCode": "0625_s20_qp_11",
+      "title": "IGCSE Physics Summer 2020 Paper 11",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "beginner",
+      "totalQuestions": 40,
+      "validQuestions": 24,
+      "invalidQuestions": 16,
+      "issues": [
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Correct answer 'B' not in available options"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text",
+          "Correct answer 'D' not in available options"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_12_quiz.json",
+      "paperCode": "0625_s20_qp_12",
+      "title": "IGCSE Physics Summer 2020 Paper 12",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "beginner",
+      "totalQuestions": 40,
+      "validQuestions": 24,
+      "invalidQuestions": 16,
+      "issues": [
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Correct answer 'B' not in available options"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text",
+          "Correct answer 'D' not in available options"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_13_quiz.json",
+      "paperCode": "0625_s20_qp_13",
+      "title": "IGCSE Physics Summer 2020 Paper 13",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "beginner",
+      "totalQuestions": 40,
+      "validQuestions": 25,
+      "invalidQuestions": 15,
+      "issues": [
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Correct answer 'B' not in available options"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Correct answer 'D' not in available options"
+        ],
+        [
+          "Missing question text",
+          "Correct answer 'D' not in available options"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_21_quiz.json",
+      "paperCode": "0625_s20_qp_21",
+      "title": "IGCSE Physics Summer 2020 Paper 21",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "intermediate",
+      "totalQuestions": 40,
+      "validQuestions": 0,
+      "invalidQuestions": 40,
+      "issues": [
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_22_quiz.json",
+      "paperCode": "0625_s20_qp_22",
+      "title": "IGCSE Physics Summer 2020 Paper 22",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "intermediate",
+      "totalQuestions": 40,
+      "validQuestions": 20,
+      "invalidQuestions": 20,
+      "issues": [
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Correct answer 'B' not in available options"
+        ],
+        [
+          "Correct answer 'B' not in available options"
+        ],
+        [
+          "Empty option: B"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ],
+        [
+          "Missing question text"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_23_quiz.json",
+      "paperCode": "0625_s20_qp_23",
+      "title": "IGCSE Physics Summer 2020 Paper 23",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "intermediate",
+      "totalQuestions": 40,
+      "validQuestions": 0,
+      "invalidQuestions": 40,
+      "issues": [
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_31_quiz.json",
+      "paperCode": "0625_s20_qp_31",
+      "title": "IGCSE Physics Summer 2020 Paper 31",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "intermediate",
+      "totalQuestions": 7,
+      "validQuestions": 0,
+      "invalidQuestions": 7,
+      "issues": [
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_32_quiz.json",
+      "paperCode": "0625_s20_qp_32",
+      "title": "IGCSE Physics Summer 2020 Paper 32",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "intermediate",
+      "totalQuestions": 9,
+      "validQuestions": 1,
+      "invalidQuestions": 8,
+      "issues": [
+        [
+          "Insufficient options (less than 2)",
+          "Correct answer 'C' not in available options"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_41_quiz.json",
+      "paperCode": "0625_s20_qp_41",
+      "title": "IGCSE Physics Summer 2020 Paper 41",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "advanced",
+      "totalQuestions": 9,
+      "validQuestions": 0,
+      "invalidQuestions": 9,
+      "issues": [
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_42_quiz.json",
+      "paperCode": "0625_s20_qp_42",
+      "title": "IGCSE Physics Summer 2020 Paper 42",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "advanced",
+      "totalQuestions": 5,
+      "validQuestions": 0,
+      "invalidQuestions": 5,
+      "issues": [
+        [
+          "Insufficient options (less than 2)"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_43_quiz.json",
+      "paperCode": "0625_s20_qp_43",
+      "title": "IGCSE Physics Summer 2020 Paper 43",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "advanced",
+      "totalQuestions": 4,
+      "validQuestions": 0,
+      "invalidQuestions": 4,
+      "issues": [
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Correct answer 'C' not in available options"
+        ],
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_51_quiz.json",
+      "paperCode": "0625_s20_qp_51",
+      "title": "IGCSE Physics Summer 2020 Paper 51",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "advanced",
+      "totalQuestions": 4,
+      "validQuestions": 1,
+      "invalidQuestions": 3,
+      "issues": [
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_52_quiz.json",
+      "paperCode": "0625_s20_qp_52",
+      "title": "IGCSE Physics Summer 2020 Paper 52",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "advanced",
+      "totalQuestions": 4,
+      "validQuestions": 0,
+      "invalidQuestions": 4,
+      "issues": [
+        [
+          "Correct answer 'C' not in available options"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_53_quiz.json",
+      "paperCode": "0625_s20_qp_53",
+      "title": "IGCSE Physics Summer 2020 Paper 53",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "advanced",
+      "totalQuestions": 4,
+      "validQuestions": 0,
+      "invalidQuestions": 4,
+      "issues": [
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_61_quiz.json",
+      "paperCode": "0625_s20_qp_61",
+      "title": "IGCSE Physics Summer 2020 Paper 61",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "advanced",
+      "totalQuestions": 3,
+      "validQuestions": 0,
+      "invalidQuestions": 3,
+      "issues": [
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Correct answer 'C' not in available options"
+        ],
+        [
+          "Missing question text",
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ]
+      ]
+    },
+    {
+      "filename": "0625_s20_qp_63_quiz.json",
+      "paperCode": "0625_s20_qp_63",
+      "title": "IGCSE Physics Summer 2020 Paper 63",
+      "subject": "Physics",
+      "duration": 45,
+      "difficultyLevel": "advanced",
+      "totalQuestions": 4,
+      "validQuestions": 0,
+      "invalidQuestions": 4,
+      "issues": [
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Correct answer 'C' not in available options"
+        ],
+        [
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ],
+        [
+          "Missing question text",
+          "Insufficient options (less than 2)",
+          "Missing correct answer"
+        ]
+      ]
+    }
+  ],
+  "dataQualityIssues": [
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 1,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 5,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 7,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 8,
+      "issues": [
+        "Correct answer 'B' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 11,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 14,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 15,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 24,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 25,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 27,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 31,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 34,
+      "issues": [
+        "Missing question text",
+        "Correct answer 'D' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 35,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 36,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 37,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_11_quiz.json",
+      "questionNumber": 39,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 5,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 11,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 13,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 15,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 16,
+      "issues": [
+        "Correct answer 'B' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 17,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 19,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 24,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 25,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 26,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 29,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 31,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 34,
+      "issues": [
+        "Missing question text",
+        "Correct answer 'D' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 37,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 39,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_12_quiz.json",
+      "questionNumber": 40,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 1,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 6,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 9,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 11,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 14,
+      "issues": [
+        "Correct answer 'B' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 15,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 18,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 24,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 25,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 26,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 31,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 33,
+      "issues": [
+        "Correct answer 'D' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 34,
+      "issues": [
+        "Missing question text",
+        "Correct answer 'D' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 37,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_13_quiz.json",
+      "questionNumber": 39,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 1,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 2,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 3,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 4,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 5,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 6,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 7,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 8,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 9,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 10,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 11,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 12,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 13,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 14,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 15,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 16,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 17,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 18,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 19,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 20,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 21,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 22,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 23,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 24,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 25,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 26,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 27,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 28,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 29,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 30,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 31,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 32,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 33,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 34,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 35,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 36,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 37,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 38,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 39,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_21_quiz.json",
+      "questionNumber": 40,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 2,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 5,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 7,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 9,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 11,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 13,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 18,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 22,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 24,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 25,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 27,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 28,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 29,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 30,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 33,
+      "issues": [
+        "Correct answer 'B' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 34,
+      "issues": [
+        "Correct answer 'B' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 35,
+      "issues": [
+        "Empty option: B"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 36,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 38,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_22_quiz.json",
+      "questionNumber": 39,
+      "issues": [
+        "Missing question text"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 1,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 2,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 3,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 4,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 5,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 6,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 7,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 8,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 9,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 10,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 11,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 12,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 13,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 14,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 15,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 16,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 17,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 18,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 19,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 20,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 21,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 22,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 23,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 24,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 25,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 26,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 27,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 28,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 29,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 30,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 31,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 32,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 33,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 34,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 35,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 36,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 37,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 38,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 39,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_23_quiz.json",
+      "questionNumber": 40,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_31_quiz.json",
+      "questionNumber": 1,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_31_quiz.json",
+      "questionNumber": 2,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_31_quiz.json",
+      "questionNumber": 3,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_31_quiz.json",
+      "questionNumber": 4,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_31_quiz.json",
+      "questionNumber": 5,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_31_quiz.json",
+      "questionNumber": 6,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_31_quiz.json",
+      "questionNumber": 7,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_32_quiz.json",
+      "questionNumber": 1,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Correct answer 'C' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_32_quiz.json",
+      "questionNumber": 3,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_32_quiz.json",
+      "questionNumber": 4,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_32_quiz.json",
+      "questionNumber": 5,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_32_quiz.json",
+      "questionNumber": 6,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_32_quiz.json",
+      "questionNumber": 7,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_32_quiz.json",
+      "questionNumber": 8,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_32_quiz.json",
+      "questionNumber": 9,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_41_quiz.json",
+      "questionNumber": 1,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_41_quiz.json",
+      "questionNumber": 2,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_41_quiz.json",
+      "questionNumber": 3,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_41_quiz.json",
+      "questionNumber": 4,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_41_quiz.json",
+      "questionNumber": 5,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_41_quiz.json",
+      "questionNumber": 6,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_41_quiz.json",
+      "questionNumber": 7,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_41_quiz.json",
+      "questionNumber": 8,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_41_quiz.json",
+      "questionNumber": 9,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_42_quiz.json",
+      "questionNumber": 1,
+      "issues": [
+        "Insufficient options (less than 2)"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_42_quiz.json",
+      "questionNumber": 2,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_42_quiz.json",
+      "questionNumber": 3,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_42_quiz.json",
+      "questionNumber": 4,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_42_quiz.json",
+      "questionNumber": 5,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_43_quiz.json",
+      "questionNumber": 1,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Correct answer 'C' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_43_quiz.json",
+      "questionNumber": 2,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_43_quiz.json",
+      "questionNumber": 3,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_43_quiz.json",
+      "questionNumber": 4,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_51_quiz.json",
+      "questionNumber": 2,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_51_quiz.json",
+      "questionNumber": 3,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_51_quiz.json",
+      "questionNumber": 4,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_52_quiz.json",
+      "questionNumber": 1,
+      "issues": [
+        "Correct answer 'C' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_52_quiz.json",
+      "questionNumber": 2,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_52_quiz.json",
+      "questionNumber": 3,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_52_quiz.json",
+      "questionNumber": 4,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_53_quiz.json",
+      "questionNumber": 1,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_53_quiz.json",
+      "questionNumber": 2,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_53_quiz.json",
+      "questionNumber": 3,
+      "issues": [
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_53_quiz.json",
+      "questionNumber": 4,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_61_quiz.json",
+      "questionNumber": 1,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Correct answer 'C' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_61_quiz.json",
+      "questionNumber": 2,
+      "issues": [
+        "Missing question text",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_61_quiz.json",
+      "questionNumber": 3,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_63_quiz.json",
+      "questionNumber": 1,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Correct answer 'C' not in available options"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_63_quiz.json",
+      "questionNumber": 2,
+      "issues": [
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_63_quiz.json",
+      "questionNumber": 3,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    },
+    {
+      "file": "0625_s20_qp_63_quiz.json",
+      "questionNumber": 4,
+      "issues": [
+        "Missing question text",
+        "Insufficient options (less than 2)",
+        "Missing correct answer"
+      ]
+    }
+  ],
+  "paperCodeAnalysis": {
+    "0625_s20_qp_11": {
+      "count": 1,
+      "totalQuestions": 40,
+      "validQuestions": 24
+    },
+    "0625_s20_qp_12": {
+      "count": 1,
+      "totalQuestions": 40,
+      "validQuestions": 24
+    },
+    "0625_s20_qp_13": {
+      "count": 1,
+      "totalQuestions": 40,
+      "validQuestions": 25
+    },
+    "0625_s20_qp_21": {
+      "count": 1,
+      "totalQuestions": 40,
+      "validQuestions": 0
+    },
+    "0625_s20_qp_22": {
+      "count": 1,
+      "totalQuestions": 40,
+      "validQuestions": 20
+    },
+    "0625_s20_qp_23": {
+      "count": 1,
+      "totalQuestions": 40,
+      "validQuestions": 0
+    },
+    "0625_s20_qp_31": {
+      "count": 1,
+      "totalQuestions": 7,
+      "validQuestions": 0
+    },
+    "0625_s20_qp_32": {
+      "count": 1,
+      "totalQuestions": 9,
+      "validQuestions": 1
+    },
+    "0625_s20_qp_41": {
+      "count": 1,
+      "totalQuestions": 9,
+      "validQuestions": 0
+    },
+    "0625_s20_qp_42": {
+      "count": 1,
+      "totalQuestions": 5,
+      "validQuestions": 0
+    },
+    "0625_s20_qp_43": {
+      "count": 1,
+      "totalQuestions": 4,
+      "validQuestions": 0
+    },
+    "0625_s20_qp_51": {
+      "count": 1,
+      "totalQuestions": 4,
+      "validQuestions": 1
+    },
+    "0625_s20_qp_52": {
+      "count": 1,
+      "totalQuestions": 4,
+      "validQuestions": 0
+    },
+    "0625_s20_qp_53": {
+      "count": 1,
+      "totalQuestions": 4,
+      "validQuestions": 0
+    },
+    "0625_s20_qp_61": {
+      "count": 1,
+      "totalQuestions": 3,
+      "validQuestions": 0
+    },
+    "0625_s20_qp_63": {
+      "count": 1,
+      "totalQuestions": 4,
+      "validQuestions": 0
+    }
+  },
+  "topicDistribution": {},
+  "summary": {
+    "dataQualityScore": "32.4",
+    "importReadyQuestions": 95,
+    "questionsNeedingCleaning": 198,
+    "averageQuestionsPerFile": "18.3",
+    "paperTypes": 16
+  },
+  "recommendations": [
+    "🔧 Significant data cleaning required before import",
+    "📈 Consider importing all available questions for maximum impact",
+    "🎓 Excellent variety - multiple paper types for comprehensive practice",
+    "🚀 Recommend Phase 1.2: Database Schema Enhancement",
+    "📊 Recommend Phase 1.3: Bulk Import Process Development"
+  ]
+}

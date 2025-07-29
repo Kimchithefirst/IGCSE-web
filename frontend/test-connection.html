@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Backend Connection Test</h1>
+    
+    <div class="info">
+        <strong>Backend URL:</strong> https://igcse-backend-public-427ejh541-weiyou-cuis-projects.vercel.app
+    </div>
+    
+    <button onclick="testConnection()">Test Backend Connection</button>
+    
+    <div id="results"></div>
+    
+    <h2>📝 Integration Instructions</h2>
+    <p>Once the test passes, your frontend can connect to the backend using:</p>
+    <pre><code>// In your React components:
+const response = await fetch(`${import.meta.env.VITE_API_URL}/api/health.js`);
+const data = await response.json();
+console.log('Backend status:', data);
+
+// Using the API utility:
+import { checkHealth } from './utils/api.js';
+const healthData = await checkHealth();
+console.log('Health check:', healthData);</code></pre>
+
+    <script>
+        const BACKEND_URL = 'https://igcse-backend-public-427ejh541-weiyou-cuis-projects.vercel.app';
+        
+        async function testConnection() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="info">Testing connection...</div>';
+            
+            try {
+                // Test health endpoint
+                const response = await fetch(`${BACKEND_URL}/api/health.js`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ Connection Successful!</h3>
+                        <p><strong>Status:</strong> ${data.status}</p>
+                        <p><strong>Message:</strong> ${data.message}</p>
+                        <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+                    </div>
+                    <div class="info">
+                        <h4>🎉 Your backend is ready!</h4>
+                        <p>You can now use the backend in your React application.</p>
+                        <p><strong>Environment variable configured:</strong> VITE_API_URL=${BACKEND_URL}</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Connection Failed</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>Please check:</p>
+                        <ul>
+                            <li>Your internet connection</li>
+                            <li>Proxy settings if applicable</li>
+                            <li>Backend deployment status</li>
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+        
+        // Auto-test on page load
+        window.addEventListener('load', testConnection);
+    </script>
+</body>
+</html> 

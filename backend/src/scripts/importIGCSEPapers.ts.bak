@@ -1,0 +1,642 @@
+import fs from 'fs/promises';
+import path from 'path';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import { marked } from 'marked'; // Import marked
+import { Quiz, IQuiz } from '../models/Quiz'; // Adjust path as needed
+import { Question, IQuestion, IOption } from '../models/Question'; // Adjust path as needed
+
+dotenv.config({ path: path.resolve(__dirname, '../../.env') }); // Load .env file from backend directory
+
+const STOP_WORDS = [
+  'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+  'have', 'has', 'had', 'do', 'does', 'did',
+  'will', 'would', 'should', 'can', 'could', 'may', 'might',
+  'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those',
+  'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+  'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them',
+  'my', 'your', 'his', 'its', 'our', 'their', 'mine', 'yours', 'hers', 'ours', 'theirs',
+  'to', 'of', 'in', 'on', 'at', 'by', 'for', 'with', 'about', 'against', 'between',
+  'into', 'through', 'during', 'before', 'after', 'above', 'below', 'from', 'up', 'down',
+  'out', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there',
+  'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most',
+  'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than',
+  'too', 'very', 's', 't', 'just', 'don', 'shouldve', 'now', 'd', 'll', 'm', 'o', 're',
+  've', 'y', 'ain', 'aren', 'couldn', 'didn', 'doesn', 'hadn', 'hasn', 'haven',
+  'isn', 'ma', 'mightn', 'mustn', 'needn', 'shan', 'shouldn', 'wasn', 'weren',
+  'won', 'wouldn', 'fig', 'diagram', 'graph', 'table', 'using', 'shown', 'following',
+  'explain', 'describe', 'calculate', 'determine', 'state', 'identify', 'define', 'name', 'give'
+];
+
+
+// DB Connection
+const connectDB = async () => {
+  try {
+    const mongoURI = process.env.MONGODB_URI;
+    if (!mongoURI) {
+      console.error('MONGODB_URI not found in environment variables.');
+      process.exit(1);
+    }
+    await mongoose.connect(mongoURI);
+    console.log('MongoDB Connected');
+  } catch (err: any) {
+    console.error('MongoDB connection error:', err.message);
+    process.exit(1);
+  }
+};
+
+const BASE_IGCSE_DIR = path.join(__dirname, '../../../../IGCSE markdown题库'); // Adjust if your directory structure is different
+const SUBJECT_FOLDERS: { [key: string]: string } = {
+  PHYSICS: 'IG Physics PP',
+  MATHEMATICS: 'IG Maths PP',
+  CHEMISTRY: 'IG Chemistry PP',
+  BIOLOGY: 'IG Biology PP',
+  ECONOMICS: 'IG Economics PP',
+};
+
+interface ParsedPaperCode {
+  paperCode: string;
+  subjectCode: string;
+  year: string;
+  examSession: string; // 'm', 's', 'w'
+  paperType: string; // 'qp', 'ms', etc.
+  paperNumber: string; // '1', '2', etc.
+  variantNumber?: string; // '1', '2', etc. (e.g., from qp_11, variant is 1)
+}
+
+class ImportIGCSEPapers {
+  private grandTotalFilesFound: number;
+  private grandTotalImported: number;
+  private grandTotalSkipped: number;
+  private grandTotalErrors: number;
+
+  constructor() {
+    this.grandTotalFilesFound = 0;
+    this.grandTotalImported = 0;
+    this.grandTotalSkipped = 0;
+    this.grandTotalErrors = 0;
+  }
+
+  extractKeywords(text: string): string[] {
+    if (!text || typeof text !== 'string') {
+      return [];
+    }
+    // Convert to lowercase and split by spaces and most punctuation, keeping intra-word hyphens/apostrophes
+    // \p{P} is Unicode punctuation, \s is whitespace.
+    const words = text.toLowerCase().split(/[\s\p{P}]+/u).filter(Boolean);
+
+    const keywords = words
+      .filter(word => !STOP_WORDS.includes(word))
+      .filter(word => word.length >= 3 || /^\d+$/.test(word)); // Keep words with length >= 3 or if purely numeric
+
+    return [...new Set(keywords)]; // Return unique keywords
+  }
+
+  parsePaperCode(filename: string): ParsedPaperCode | null {
+    // Filename example: 0625_s20_qp_11_quiz.json or 0625_w19_ms_1.json
+    const pattern = /^(\d{4})_([smw]\d{2})_([a-z]{2,3})_(\d{1,2})(_quiz)?\.json$/;
+    const match = filename.match(pattern);
+
+    if (match) {
+      const subjectCode = match[1];
+      const sessionYear = match[2]; // e.g., s20
+      const paperType = match[3]; // qp, ms
+      const paperNumberVariant = match[4]; // e.g., 11, 1, 2
+
+      const year = `20${sessionYear.substring(1)}`;
+      const examSession = sessionYear.charAt(0); // s, m, w
+
+      let paperNumber = paperNumberVariant;
+      let variantNumber;
+
+      // If paperNumberVariant has two digits (e.g., 11, 21, 31, 41), the second digit is the variant
+      if (paperNumberVariant.length === 2 && ['1', '2', '3', '4', '5', '6'].includes(paperNumberVariant[0])) {
+          paperNumber = paperNumberVariant[0];
+          variantNumber = paperNumberVariant[1];
+      }
+
+
+      const paperCode = `${subjectCode}_${sessionYear}_${paperType}_${paperNumberVariant}`;
+
+      return {
+        paperCode,
+        subjectCode,
+        year,
+        examSession,
+        paperType,
+        paperNumber: paperNumber,
+        variantNumber: variantNumber,
+      };
+    }
+    console.warn(`Could not parse filename: ${filename}`);
+    return null;
+  }
+
+  transformOptionStructure(options: any, correctAnswerKey: string | number): IOption[] {
+    const transformedOptions: IOption[] = [];
+    if (Array.isArray(options)) {
+      options.forEach((optionText, index) => {
+        let isCorrect = false;
+        // If correctAnswerKey is a number (index) or a string representing a number
+        if (!isNaN(Number(correctAnswerKey))) {
+          isCorrect = index === Number(correctAnswerKey);
+        } else {
+          // If correctAnswerKey is a letter like "A", "B", "C", "D"
+          // Map 'A' to 0, 'B' to 1, etc.
+          const charCodeA = 'A'.charCodeAt(0);
+          const keyAsIndex = String(correctAnswerKey).toUpperCase().charCodeAt(0) - charCodeA;
+          isCorrect = index === keyAsIndex;
+        }
+        transformedOptions.push({
+          text: String(optionText),
+          isCorrect: isCorrect,
+        });
+      });
+    } else if (typeof options === 'object' && options !== null) {
+      // Assuming object like {"A": "Text A", "B": "Text B"}
+      Object.keys(options).forEach(key => { // key is string e.g. "A", "B"
+        transformedOptions.push({
+          text: String(options[key]),
+          // Ensure correctAnswerKey is also treated as a string for comparison
+          isCorrect: key.toUpperCase() === String(correctAnswerKey).toUpperCase(),
+        });
+      });
+    }
+    return transformedOptions;
+  }
+
+  // Combined transformQuizData for JSON and Markdown
+  transformQuizData(filePath: string, sourceData: any, subjectNameKey: string): { quizData: Partial<IQuiz>, questionsData: Partial<IQuestion>[] } | null {
+    const filename = path.basename(filePath);
+    const paperDetails = this.parsePaperCode(filename);
+
+    if (!paperDetails) {
+      console.error(`Skipping file due to paper code parsing error: ${filename}`);
+      return null;
+    }
+
+    let titleForQuiz: string;
+    const questionsData: Partial<IQuestion>[] = [];
+    let totalPoints = 0;
+    let isFromMarkdown = false;
+
+    // Type guard to check if sourceData is ExtractedQuizData (from Markdown)
+    if ('questions' in sourceData && Array.isArray(sourceData.questions) && 'title' in sourceData && typeof sourceData.title === 'string') {
+      isFromMarkdown = true;
+      console.log(`Transforming data from Markdown for: ${sourceData.title}`);
+      const extractedData = sourceData as ExtractedQuizData; // Cast to ExtractedQuizData
+      titleForQuiz = extractedData.title; // Use title from Markdown
+
+      extractedData.questions.forEach((extractedQ, index) => {
+        const questionPoints = 1; // Default points for MD questions
+        totalPoints += questionPoints;
+
+        const optionsForModel: IOption[] = (extractedQ.options || []).map(optText => ({
+          text: optText,
+          isCorrect: false, // No correct answer info from current MD parsing
+        }));
+
+        questionsData.push({
+          text: extractedQ.text,
+          type: (optionsForModel.length > 1) ? 'multiple-choice' : 'short-answer',
+          options: optionsForModel.length > 0 ? optionsForModel : undefined,
+          points: questionPoints,
+          explanation: '', // Default explanation (can be enhanced later)
+          difficultyLevel: 'medium', // Default difficulty
+          topic: subjectNameKey, // Default topic to subject name
+          keywords: this.extractKeywords(extractedQ.text),
+        });
+        // Optional: Log keywords for the first processed MD question
+        if (index === 0 && questionsData.length > 0 && questionsData[0].keywords) {
+            console.log(`Keywords for first MD question ("${questionsData[0].text?.substring(0,30)}..."): ${questionsData[0].keywords.join(', ')}`);
+        }
+      });
+    } else { // Assuming JSON structure (original logic)
+      console.log(`Transforming data from JSON for file: ${filename}`);
+      const jsonData = sourceData; // Treat as original JSON data
+
+      let titleSubjectName = paperDetails.subjectCode;
+      if (paperDetails.subjectCode === '0625') titleSubjectName = 'Physics';
+      else if (paperDetails.subjectCode === '0606') titleSubjectName = 'Additional Mathematics';
+      else if (paperDetails.subjectCode === '0620') titleSubjectName = 'Chemistry';
+      else if (paperDetails.subjectCode === '0610') titleSubjectName = 'Biology';
+      else if (paperDetails.subjectCode === '0455') titleSubjectName = 'Economics';
+      else titleSubjectName = subjectNameKey;
+
+      const paperCodeStr = `${paperDetails.paperType.toUpperCase()} ${paperDetails.paperNumber}${paperDetails.variantNumber || ''}`;
+      const sessionStr = `${paperDetails.examSession.toUpperCase()}${paperDetails.year.substring(2)}`;
+      titleForQuiz = String(jsonData.title || `${titleSubjectName} ${paperCodeStr} - ${sessionStr}`);
+
+      if (Array.isArray(jsonData.questions)) {
+        jsonData.questions.forEach((q: any) => {
+          const points = typeof q.marks === 'number' ? q.marks : 1;
+          totalPoints += points;
+          let difficulty: 'easy' | 'medium' | 'hard' = 'medium';
+          if (q.difficultyLevel === 'beginner') difficulty = 'easy';
+          else if (q.difficultyLevel === 'advanced') difficulty = 'hard';
+          else if (['easy', 'medium', 'hard'].includes(q.difficultyLevel)) difficulty = q.difficultyLevel;
+          const topicTagsArray = Array.isArray(q.topicTags) ? q.topicTags : (q.topicTags ? [q.topicTags] : []);
+          const topic = topicTagsArray.length > 0 ? String(topicTagsArray[0]) : 'General';
+          questionsData.push({
+            text: String(q.questionText || `Question ...`),
+            type: (q.questionType || 'multiple-choice') as IQuestion['type'],
+            options: this.transformOptionStructure(q.options, q.correctAnswer),
+            points: points,
+            explanation: String(q.explanation || ''),
+            difficultyLevel: difficulty,
+            topic: topic,
+            keywords: this.extractKeywords(String(q.questionText || '') + (q.explanation ? ' ' + String(q.explanation) : '')),
+          });
+           // Optional: Log keywords for the first processed JSON question
+           if (questionsData.length > 0 && questionsData[questionsData.length-1].text === String(q.questionText || `Question ...`) && questionsData.filter(item => item.keywords && item.keywords.length > 0).length === 1) {
+            console.log(`Keywords for first JSON question ("${questionsData[questionsData.length-1].text?.substring(0,30)}..."): ${questionsData[questionsData.length-1].keywords?.join(', ')}`);
+           }
+        });
+      }
+    }
+
+    // Common Quiz data construction
+    const quizDuration = isFromMarkdown ? 45 : (Number(sourceData.duration) || 50); // Default duration for MD, or from JSON
+    const quizDifficulty = isFromMarkdown ? 'intermediate' : (sourceData.difficultyLevel || 'intermediate');
+    const quizTopicTags = isFromMarkdown ? [] : (Array.isArray(sourceData.topicTags) ? sourceData.topicTags.map(String) : []);
+    const quizDescription = isFromMarkdown ? `IGCSE ${subjectNameKey} paper: ${titleForQuiz}` : String(sourceData.description || `IGCSE ${subjectNameKey} Paper ${paperDetails.paperNumber}${paperDetails.variantNumber || ''}`);
+
+    const quizData: Partial<IQuiz> = {
+      title: titleForQuiz,
+      subject: subjectNameKey,
+      description: quizDescription,
+      duration: quizDuration,
+      difficultyLevel: quizDifficulty as IQuiz['difficultyLevel'],
+      totalPoints: totalPoints,
+      passingPoints: Math.ceil(totalPoints * 0.5),
+      isPublished: false, // Default for new imports
+      topicTags: quizTopicTags,
+      isIGCSEPaper: true, // Assume all imported via this script are IGCSE
+      examBoard: String(isFromMarkdown ? 'Cambridge (Assumed)' : (sourceData.examBoard || 'Cambridge')),
+      paperCode: paperDetails.paperCode,
+      examSession: `${paperDetails.examSession.toUpperCase()}${paperDetails.year.substring(2)}`,
+      paperType: paperDetails.paperType,
+      paperNumber: parseInt(paperDetails.paperNumber, 10),
+      gradeThresholds: isFromMarkdown ? {} : (sourceData.gradeThresholds || {}),
+    };
+
+    if (paperDetails.variantNumber && !isFromMarkdown) { // Variant info primarily from filename for JSON
+        quizData.title += ` Variant ${paperDetails.variantNumber}`;
+        // Description already includes variant if applicable for JSON
+    } else if (paperDetails.variantNumber && isFromMarkdown) {
+        // For Markdown, title is from content, but we can append variant to description
+        quizData.description += ` (Variant ${paperDetails.variantNumber})`;
+    }
+
+    console.log(`Prepared quiz data for: ${quizData.title}, Total Points: ${totalPoints}`);
+    return { quizData, questionsData };
+  }
+
+  interface ExtractedQuestion {
+    text: string;
+    options?: string[];
+  }
+
+  interface ExtractedQuizData {
+    title: string;
+    questions: ExtractedQuestion[];
+  }
+
+  async processMarkdownFile(filePath: string): Promise<ExtractedQuizData | null> {
+    console.log(`\n--- Processing Markdown File: ${path.basename(filePath)} ---`);
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const htmlContent = await marked.parse(content); // Keep for title, or could remove if title from MD
+
+      let title = path.basename(filePath); // Default title
+      const h1Match = htmlContent.match(/<h1[^>]*>(.*?)<\/h1>/i);
+      if (h1Match && h1Match[1]) {
+        title = h1Match[1].trim().replace(/&amp;/g, '&');
+      }
+
+      const questions: ExtractedQuestion[] = [];
+      const lines = content.split(/\r?\n/);
+      let currentQuestionText = '';
+      let currentOptions: string[] = [];
+      let isInsideQuestion = false;
+
+      const questionStartRegex = /^\s*(\d+)\.\s*(.*)/; // "  1. Question text"
+      const optionRegex = /^\s*([A-D])\s*[.\)]\s*(.*)/i; // " A. Option", "B) Option" (case-insensitive for A-D)
+
+      for (const line of lines) {
+        const questionMatch = line.match(questionStartRegex);
+        const optionMatch = line.match(optionRegex);
+
+        if (questionMatch) {
+          // Save previous question if any
+          if (isInsideQuestion && currentQuestionText.trim()) {
+            questions.push({
+              text: currentQuestionText.trim(),
+              options: currentOptions.length > 0 ? [...currentOptions] : undefined
+            });
+          }
+          // Start new question
+          currentQuestionText = questionMatch[2]; // Text after "1. "
+          currentOptions = [];
+          isInsideQuestion = true;
+        } else if (isInsideQuestion && optionMatch) {
+          currentOptions.push(optionMatch[2].trim()); // Text after "A. "
+        } else if (isInsideQuestion && line.trim() && !optionMatch) {
+          // Line is part of the current question's text (continuation)
+          // but not an option line and not a new question line.
+          if (currentOptions.length === 0) { // Only append if options haven't started for this q
+             currentQuestionText += `\n${line.trim()}`;
+          } else {
+            // If options have started, and this line is not an option,
+            // it might be a continuation of the last option, or something else.
+            // For simplicity, we'll assume options are single lines for now or this line is part of the last option.
+            // This part can be made more robust.
+            if (currentOptions.length > 0) {
+                currentOptions[currentOptions.length -1] += `\n${line.trim()}`;
+            }
+          }
+        } else if (line.trim() === '' && isInsideQuestion) {
+            // Empty line might signify end of question or options block, or just a blank line within.
+            // For now, we allow questions/options to span multiple lines if they don't match new Q/Option.
+        }
+      }
+      // Add the last processed question
+      if (isInsideQuestion && currentQuestionText.trim()) {
+        questions.push({
+          text: currentQuestionText.trim(),
+          options: currentOptions.length > 0 ? [...currentOptions] : undefined
+        });
+      }
+
+      console.log(`File: ${path.basename(filePath)}`);
+      console.log(`Extracted Title: ${title}`);
+      console.log(`Number of questions extracted: ${questions.length}`);
+      if (questions.length > 0) {
+        console.log("Sample of extracted questions (first 2):");
+        console.log(JSON.stringify(questions.slice(0, 2), null, 2));
+      }
+
+      return { title, questions };
+
+    } catch (error: any) {
+      console.error(`Error processing markdown file ${filePath}:`, String(error.message));
+      return null;
+    }
+  }
+
+  async findQuizFiles(currentPath: string): Promise<string[]> {
+    let files: string[] = [];
+    const entries = await fs.readdir(currentPath, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(currentPath, entry.name);
+      if (entry.isDirectory()) {
+        files = files.concat(await this.findQuizFiles(fullPath));
+      } else if (entry.isFile() && entry.name.endsWith('_quiz.json')) {
+        files.push(fullPath);
+      }
+    }
+    return files;
+  }
+
+  async importSubject(subjectKey: keyof typeof SUBJECT_FOLDERS) {
+    console.log(`\n--- Starting import for subject: ${subjectKey} ---`);
+    const subjectFolderName = SUBJECT_FOLDERS[subjectKey];
+    if (!subjectFolderName) {
+      console.error(`Configuration for subject folder ${subjectKey} not found.`);
+      return;
+    }
+
+    const subjectBasePath = path.join(BASE_IGCSE_DIR, subjectFolderName);
+    let quizFiles: string[] = [];
+
+    const summary = {
+        totalFilesFound: 0,
+        imported: 0,
+        skipped: 0,
+        errors: 0,
+    };
+
+    try {
+      // 1. Check for a 'quizzes' subdirectory
+      const quizzesSpecificPath = path.join(subjectBasePath, 'quizzes');
+      try {
+        if ((await fs.stat(quizzesSpecificPath)).isDirectory()) {
+          console.log(`Found 'quizzes' directory for ${subjectKey} at: ${quizzesSpecificPath}`);
+          const filesInQuizzesDir = await fs.readdir(quizzesSpecificPath);
+          quizFiles = filesInQuizzesDir
+            .filter(file => file.endsWith('_quiz.json'))
+            .map(file => path.join(quizzesSpecificPath, file));
+        }
+      } catch (e: any) {
+        // If quizzesSpecificPath doesn't exist or is not a directory, proceed to scan subdirectories
+        if (e.code !== 'ENOENT') console.warn(`Warning checking quizzes directory for ${subjectKey}: ${e.message}`);
+      }
+
+      // 2. If no files found in 'quizzes' subdirectory, scan immediate subdirectories (year/session folders)
+      if (quizFiles.length === 0) {
+        console.log(`'quizzes' directory not found or empty for ${subjectKey}. Scanning year/session subfolders in ${subjectBasePath}...`);
+        const yearSessionFolders = await fs.readdir(subjectBasePath, { withFileTypes: true });
+        for (const folderEntry of yearSessionFolders) {
+          if (folderEntry.isDirectory()) {
+            const currentSubFolderPath = path.join(subjectBasePath, folderEntry.name);
+            const filesInSubFolder = await fs.readdir(currentSubFolderPath);
+            filesInSubFolder.forEach(file => {
+              if (file.endsWith('_quiz.json')) {
+                quizFiles.push(path.join(currentSubFolderPath, file));
+              }
+            });
+          }
+        }
+      }
+
+      summary.totalFilesFound = quizFiles.length;
+      console.log(`Found ${summary.totalFilesFound} quiz files for ${subjectKey}.`);
+
+      if (summary.totalFilesFound === 0) {
+        console.log(`No JSON quiz files found for ${subjectKey}.`);
+        // Continue to check for MD files if it's Physics
+      } else { // Process JSON files if found
+        // For now, process only the first JSON quiz file found to keep output manageable
+        const firstJsonQuizFile = quizFiles[0];
+        console.log(`\nProcessing JSON file: ${path.basename(firstJsonQuizFile)} for ${subjectKey}`);
+        try {
+          const fileContent = await fs.readFile(firstJsonQuizFile, 'utf-8');
+          const jsonData = JSON.parse(fileContent);
+          const transformedData = this.transformQuizData(firstJsonQuizFile, jsonData, subjectKey);
+
+          if (transformedData && transformedData.quizData.paperCode) {
+            const existingQuiz = await Quiz.findOne({ paperCode: transformedData.quizData.paperCode });
+
+            if (existingQuiz) {
+              console.log(`Skipped (duplicate): Quiz with paperCode ${transformedData.quizData.paperCode} (${path.basename(firstJsonQuizFile)}) already exists.`);
+              summary.skipped++;
+            } else {
+              console.log(`Attempting to save quiz: ${transformedData.quizData.title} (${path.basename(firstJsonQuizFile)})`);
+              const quiz = new Quiz(transformedData.quizData);
+              await quiz.save();
+              console.log(`Imported: Quiz "${quiz.title}" (ID: ${quiz._id}) saved successfully.`);
+              summary.imported++;
+
+              if (transformedData.questionsData && transformedData.questionsData.length > 0) {
+                const questionsToSave = transformedData.questionsData.map(q => ({
+                  ...q,
+                  quizId: quiz._id,
+                }));
+                await Question.insertMany(questionsToSave);
+                console.log(`  ${questionsToSave.length} questions for quiz "${quiz.title}" saved.`);
+              }
+            }
+          } else {
+            console.error(`Error: Failed to transform or missing paperCode for ${path.basename(firstJsonQuizFile)}.`);
+            summary.errors++;
+          }
+        } catch (fileProcessingError: any) {
+          console.error(`Error processing JSON file ${path.basename(firstJsonQuizFile)}:`, String(fileProcessingError.message));
+          summary.errors++;
+        }
+      } // End of JSON processing block
+
+      // Markdown processing for PHYSICS
+      if (subjectKey === 'PHYSICS') {
+        console.log(`\nLooking for Markdown question paper files for ${subjectKey} in ${subjectBasePath}...`);
+        let mdPaperFiles: string[] = [];
+        // Check 'quizzes' subdirectory first for MD files
+        try {
+          if ((await fs.stat(quizzesSpecificPath)).isDirectory()) {
+            const filesInQuizzesMd = await fs.readdir(quizzesSpecificPath);
+            filesInQuizzesMd.forEach(file => {
+              if (file.endsWith('.md') && file.includes('_qp_')) {
+                mdPaperFiles.push(path.join(quizzesSpecificPath, file));
+              }
+            });
+          }
+        } catch (e: any) {
+          if (e.code !== 'ENOENT') console.warn(`Warning checking quizzes MD directory for ${subjectKey}: ${String(e.message)}`);
+        }
+
+        // If no MD files in 'quizzes', scan year/session subfolders
+        if (mdPaperFiles.length === 0) {
+          const yearSessionFolders = await fs.readdir(subjectBasePath, { withFileTypes: true });
+          for (const folderEntry of yearSessionFolders) {
+            if (folderEntry.isDirectory()) {
+              const currentSubFolderPath = path.join(subjectBasePath, folderEntry.name);
+              const filesInSubFolder = await fs.readdir(currentSubFolderPath);
+              filesInSubFolder.forEach(file => {
+                if (file.endsWith('.md') && file.includes('_qp_')) {
+                  mdPaperFiles.push(path.join(currentSubFolderPath, file));
+                }
+              });
+            }
+          }
+        }
+
+        if (mdPaperFiles.length > 0) {
+          console.log(`Found ${mdPaperFiles.length} Markdown paper files for ${subjectKey}. Processing the first one: ${path.basename(mdPaperFiles[0])}`);
+          const extractedMdData = await this.processMarkdownFile(mdPaperFiles[0]);
+          if (extractedMdData) {
+            console.log(`Markdown processing returned: ${extractedMdData.questions.length} questions for title: ${extractedMdData.title}`);
+            const transformedMdData = this.transformQuizData(mdPaperFiles[0], extractedMdData, subjectKey);
+
+            if (transformedMdData && transformedMdData.quizData.paperCode) {
+              console.log(`Transformed Markdown data for Quiz: ${transformedMdData.quizData.title}`);
+              const existingQuiz = await Quiz.findOne({ paperCode: transformedMdData.quizData.paperCode });
+              if (existingQuiz) {
+                console.log(`Skipped (duplicate MD): Quiz with paperCode ${transformedMdData.quizData.paperCode} already exists.`);
+                summary.skipped++;
+              } else {
+                console.log(`Attempting to save quiz from MD: ${transformedMdData.quizData.title}`);
+                const quiz = new Quiz(transformedMdData.quizData);
+                await quiz.save();
+                console.log(`Imported (MD): Quiz "${quiz.title}" (ID: ${quiz._id}) saved successfully.`);
+                summary.imported++;
+
+                if (transformedMdData.questionsData && transformedMdData.questionsData.length > 0) {
+                  const questionsToSave = transformedMdData.questionsData.map(q => ({
+                    ...q,
+                    quizId: quiz._id,
+                  }));
+                  await Question.insertMany(questionsToSave);
+                  console.log(`  ${questionsToSave.length} questions for MD quiz "${quiz.title}" saved.`);
+                }
+              }
+            } else {
+              console.error(`Error: Failed to transform Markdown data from ${path.basename(mdPaperFiles[0])}.`);
+              summary.errors++;
+            }
+          } else {
+             console.log(`processMarkdownFile returned null for ${path.basename(mdPaperFiles[0])}.`);
+             summary.errors++;
+          }
+        } else {
+          console.log(`No Markdown paper files (containing '_qp_') found for ${subjectKey}.`);
+        }
+      }
+
+      // Original loop for JSON files - this part is now effectively processing only the first JSON file due to changes above.
+      // For this subtask, I'm processing only the first JSON file.
+      // If the requirement was to process ALL JSON files AND then MD files, the loop structure would be different.
+      // The current structure processes the first JSON, then the first MD for Physics.
+      /*
+      for (const filePath of quizFiles) {
+        const filename = path.basename(filePath);
+        console.log(`\nProcessing file: ${filename} for ${subjectKey}`);
+        try {
+          const fileContent = await fs.readFile(filePath, 'utf-8');
+          const jsonData = JSON.parse(fileContent);
+          // ... (rest of JSON processing from above, now part of the "else" block for quizFiles.length > 0)
+        } catch (fileProcessingError: any) {
+          // ...
+        }
+      }
+      */
+    } catch (error: any) {
+      console.error(`Error importing subject ${subjectKey}:`, String(error.message));
+      summary.errors++; // Count this as a general error for the subject
+    } finally {
+      console.log(`\n--- ${subjectKey} Import Summary ---`);
+      console.log(`Total files found: ${summary.totalFilesFound}`);
+      console.log(`Successfully imported: ${summary.imported}`);
+      console.log(`Skipped (duplicates): ${summary.skipped}`);
+      console.log(`Errors: ${summary.errors}`);
+      console.log(`--- End of ${subjectKey} Import ---`);
+
+      // Update grand totals
+      this.grandTotalFilesFound += summary.totalFilesFound;
+      this.grandTotalImported += summary.imported;
+      this.grandTotalSkipped += summary.skipped;
+      this.grandTotalErrors += summary.errors;
+    }
+  }
+
+  async runImport() {
+    try {
+      await connectDB();
+      await this.importSubject('PHYSICS');
+      await this.importSubject('MATHEMATICS');
+      await this.importSubject('CHEMISTRY');
+      await this.importSubject('BIOLOGY');
+      await this.importSubject('ECONOMICS');
+
+      console.log('\n\n--- Grand Total Import Summary ---');
+      console.log(`Total files found across all subjects: ${this.grandTotalFilesFound}`);
+      console.log(`Total quizzes successfully imported: ${this.grandTotalImported}`);
+      console.log(`Total quizzes skipped (duplicates): ${this.grandTotalSkipped}`);
+      console.log(`Total errors encountered: ${this.grandTotalErrors}`);
+      console.log('--- End of All Imports ---');
+
+    } catch (error) {
+      console.error('Error during the import process:', error);
+    } finally {
+      await mongoose.disconnect();
+      console.log('\nMongoDB Disconnected');
+    }
+  }
+}
+
+// Self-executing async function
+(async () => {
+  const importer = new ImportIGCSEPapers();
+  await importer.runImport();
+})();
+
+export default ImportIGCSEPapers;

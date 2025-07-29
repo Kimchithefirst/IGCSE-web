@@ -1,0 +1,24 @@
+{
+  "name": "igcse-web-backend",
+  "version": "1.0.0",
+  "description": "Backend for IGCSE Exam Preparation Platform",
+  "main": "dist/server.js",
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongoose": "^8.15.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "helmet": "^8.1.0",
+    "express-rate-limit": "^7.5.0",
+    "cookie-parser": "^1.4.7",
+    "bcryptjs": "^3.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "express-async-handler": "^1.2.0"
+  }
+} 
