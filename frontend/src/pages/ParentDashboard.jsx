@@ -37,7 +37,13 @@ import {
   Tbody,
   Tr,
   Th,
-  Td
+  Td,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Spinner,
+  useToast
 } from '@chakra-ui/react';
 import { 
   FaBook, 
@@ -53,122 +59,138 @@ import {
   FaCheckCircle,
   FaEnvelope,
   FaPhone,
-  FaChalkboardTeacher
+  FaChalkboardTeacher,
+  FaUsers,
+  FaEye,
+  FaEnvelopeOpen
 } from 'react-icons/fa';
 import { useSupabaseAuth as useAuth } from '../context/SupabaseAuthContext';
+import { supabase } from '../lib/supabase';
 
 const ParentDashboard = () => {
-  // Mock data - would come from API in a real application
-  const [selectedChild, setSelectedChild] = useState('alex');
+  const { user: authUser } = useAuth();
+  const toast = useToast();
+  const [children, setChildren] = useState([]);
+  const [selectedChild, setSelectedChild] = useState(null);
+  const [childClasses, setChildClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Theme-based colors
-  const pageBg = useColorModeValue('secondary.100', 'secondary.900'); // Keep page background neutral
-  // Parent role-specific colors from theme
+  const pageBg = useColorModeValue('secondary.100', 'secondary.900');
   const parentCardBg = useColorModeValue('parent.cardBg.default', 'parent.cardBg._dark');
   const parentPrimaryColor = useColorModeValue('parent.primary.default', 'parent.primary._dark');
   const parentSecondaryColor = useColorModeValue('parent.secondary.default', 'parent.secondary._dark');
-
-  const generalHeadingColor = useColorModeValue('brand.800', 'brand.200'); // For main page title
-  const textColor = useColorModeValue('gray.700', 'gray.500'); // Default text
+  const generalHeadingColor = useColorModeValue('brand.800', 'brand.200');
+  const textColor = useColorModeValue('gray.700', 'gray.500');
   const subtleTextColor = useColorModeValue('gray.500', 'gray.400');
-  // Icon container for stat cards will use shades of parent primary
-  const parentIconContainerBg = useColorModeValue('green.50', 'blue.800'); // Assuming parent.primary is green(light)/blue(dark)
+  const parentIconContainerBg = useColorModeValue('green.50', 'blue.800');
   const parentIconColor = parentPrimaryColor;
-
   const subtleBorderColor = useColorModeValue('gray.200', 'gray.600');
-  const inputBg = useColorModeValue('white', 'secondary.700');
-  const { user: authUser } = useAuth();
-  
-  const children = {
-    alex: {
-      name: 'Alex Johnson',
-      grade: '10th Grade',
-      avatar: '',
-      courses: 4,
-      overallGrade: 'B+',
-      progress: 68,
-      streak: 7,
-      attendance: 92,
-      nextExam: 'Mathematics - 15 May 2024',
-      alerts: 2
-    },
-    emma: {
-      name: 'Emma Johnson',
-      grade: '8th Grade',
-      avatar: '',
-      courses: 3,
-      overallGrade: 'A-',
-      progress: 81,
-      streak: 12,
-      attendance: 96,
-      nextExam: 'Biology - 22 May 2024',
-      alerts: 0
+
+  // Load parent data on component mount
+  useEffect(() => {
+    if (authUser) {
+      loadParentData();
+    }
+  }, [authUser]);
+
+  const loadParentData = async () => {
+    try {
+      setLoading(true);
+      
+      // For now, we'll simulate children data since we don't have parent-child relationships set up
+      // In a real system, you'd query for children linked to this parent
+      const mockChildren = [
+        {
+          id: 'child1',
+          name: 'Alex Johnson',
+          grade: '10th Grade',
+          email: 'alex@example.com',
+          overallGrade: 'B+',
+          progress: 68,
+          streak: 7,
+          attendance: 92,
+          nextExam: 'Mathematics - 15 May 2024',
+          alerts: 2
+        },
+        {
+          id: 'child2', 
+          name: 'Emma Johnson',
+          grade: '8th Grade',
+          email: 'emma@example.com',
+          overallGrade: 'A-',
+          progress: 85,
+          streak: 12,
+          attendance: 95,
+          nextExam: 'Science - 18 May 2024',
+          alerts: 0
+        }
+      ];
+      
+      setChildren(mockChildren);
+      if (mockChildren.length > 0) {
+        setSelectedChild(mockChildren[0]);
+        await loadChildClasses(mockChildren[0].id);
+      }
+    } catch (error) {
+      console.error('Error loading parent data:', error);
+    } finally {
+      setLoading(false);
     }
   };
-  
-  const childData = children[selectedChild];
 
-  // Mock enrolled courses for the selected child
-  const enrolledCourses = {
-    alex: [
-      { id: 1, title: 'Mathematics (0580)', progress: 75, grade: 'B', lastActivity: '2 days ago' },
-      { id: 2, title: 'Physics (0625)', progress: 62, grade: 'C+', lastActivity: '5 days ago' },
-      { id: 3, title: 'Biology (0610)', progress: 88, grade: 'A', lastActivity: 'Yesterday' },
-      { id: 4, title: 'Chemistry (0620)', progress: 45, grade: 'B-', lastActivity: '1 week ago' }
-    ],
-    emma: [
-      { id: 1, title: 'Mathematics (0580)', progress: 82, grade: 'A-', lastActivity: '1 day ago' },
-      { id: 2, title: 'English (0500)', progress: 75, grade: 'B+', lastActivity: '3 days ago' },
-      { id: 3, title: 'Geography (0460)', progress: 92, grade: 'A', lastActivity: 'Yesterday' }
-    ]
-  }[selectedChild];
-
-  const upcomingExams = {
-    alex: [
-      { id: 1, title: 'Mathematics Mock Exam', date: '15 May 2024', time: '10:00', readiness: 'Medium' },
-      { id: 2, title: 'Physics Unit Test', date: '22 May 2024', time: '14:00', readiness: 'Low' }
-    ],
-    emma: [
-      { id: 1, title: 'Biology Mid-Term', date: '22 May 2024', time: '09:00', readiness: 'High' },
-      { id: 2, title: 'Geography Project Due', date: '5 June 2024', time: '15:00', readiness: 'Medium' }
-    ]
-  }[selectedChild];
-
-  const recentActivities = {
-    alex: [
-      { id: 1, title: 'Completed Mathematics Quiz', time: '2 days ago', score: '75%' },
-      { id: 2, title: 'Watched Physics Lecture', time: '5 days ago', score: '' },
-      { id: 3, title: 'Submitted Biology Assignment', time: '1 week ago', score: 'B+' },
-      { id: 4, title: 'Missed Chemistry Homework', time: '2 weeks ago', score: '', type: 'alert' }
-    ],
-    emma: [
-      { id: 1, title: 'Completed English Essay', time: '1 day ago', score: 'A-' },
-      { id: 2, title: 'Geography Map Quiz', time: '3 days ago', score: '92%' },
-      { id: 3, title: 'Mathematics Practise Test', time: '4 days ago', score: '85%' }
-    ]
-  }[selectedChild];
-
-  const teacherContacts = {
-    alex: [
-      { id: 1, name: 'Dr. Sarah Williams', subject: 'Mathematics', email: 'swilliams@school.edu', phone: '+1-555-123-4567' },
-      { id: 2, name: 'Mr. Robert Chen', subject: 'Physics', email: 'rchen@school.edu', phone: '+1-555-234-5678' },
-      { id: 3, name: 'Ms. Ava Rodriguez', subject: 'Biology', email: 'arodriguez@school.edu', phone: '+1-555-345-6789' },
-      { id: 4, name: 'Dr. James Parker', subject: 'Chemistry', email: 'jparker@school.edu', phone: '+1-555-456-7890' }
-    ],
-    emma: [
-      { id: 1, name: 'Ms. Lisa Thompson', subject: 'Mathematics', email: 'lthompson@school.edu', phone: '+1-555-567-8901' },
-      { id: 2, name: 'Mr. Daniel Brooks', subject: 'English', email: 'dbrooks@school.edu', phone: '+1-555-678-9012' },
-      { id: 3, name: 'Dr. Olivia Martin', subject: 'Geography', email: 'omartin@school.edu', phone: '+1-555-789-0123' }
-    ]
-  }[selectedChild];
-
-  const getReadinessColor = (readiness) => {
-    switch(readiness) {
-      case 'High': return 'green';
-      case 'Medium': return 'orange';
-      case 'Low': return 'red';
-      default: return 'gray';
+  const loadChildClasses = async (childId) => {
+    try {
+      // In a real system, you'd query for the child's enrolled classes
+      // For now, we'll use mock data
+      const mockClasses = [
+        {
+          id: 'class1',
+          name: 'Advanced Mathematics',
+          subject: 'Mathematics',
+          teacher: 'Dr. Sarah Williams',
+          progress: 75,
+          grade: 'B+',
+          nextAssignment: 'Quadratic Equations Quiz - Due May 12'
+        },
+        {
+          id: 'class2',
+          name: 'Physics Fundamentals',
+          subject: 'Physics', 
+          teacher: 'Mr. David Chen',
+          progress: 60,
+          grade: 'B',
+          nextAssignment: 'Lab Report - Due May 15'
+        },
+        {
+          id: 'class3',
+          name: 'English Literature',
+          subject: 'English',
+          teacher: 'Ms. Jennifer Brown',
+          progress: 90,
+          grade: 'A-',
+          nextAssignment: 'Essay - Due May 20'
+        }
+      ];
+      
+      setChildClasses(mockClasses);
+    } catch (error) {
+      console.error('Error loading child classes:', error);
     }
+  };
+
+  const handleChildChange = async (childId) => {
+    const child = children.find(c => c.id === childId);
+    setSelectedChild(child);
+    await loadChildClasses(childId);
+  };
+
+  const parentData = {
+    name: authUser?.name || 'Parent',
+    totalChildren: children.length,
+    totalClasses: children.reduce((total, child) => total + 3, 0), // Mock: 3 classes per child
+    upcomingExams: children.reduce((total, child) => total + 1, 0), // Mock: 1 exam per child
+    alerts: children.reduce((total, child) => total + child.alerts, 0)
   };
 
   return (
@@ -177,389 +199,284 @@ const ParentDashboard = () => {
         {/* Header Section */}
         <Flex justify="space-between" align="center" mb={{ base: 6, md: 8 }}>
           <Box>
-            <Heading as="h1" size="xl" mb={1} color={generalHeadingColor}>
-              Parent Dashboard
+            <Heading size="lg" color={generalHeadingColor} mb={2}>
+              Welcome back, {parentData.name}!
             </Heading>
-            <Text color={textColor}>
-              Monitor {childData.name}'s academic progress and activities.
+            <Text color={subtleTextColor}>
+              Monitor your children's academic progress
             </Text>
           </Box>
-          <Flex align="center">
-            <Box mr={4} position="relative" cursor="pointer" _hover={{ color: parentPrimaryColor }}>
-              <Icon as={FaRegBell} boxSize={6} color={subtleTextColor} />
-              {childData.alerts > 0 && (
-                <Box 
-                  position="absolute" 
-                  top="-5px" 
-                  right="-5px" 
-                  bg="red.500" 
-                  borderRadius="full" 
-                  w="18px" 
-                  h="18px" 
-                  display="flex" 
-                  alignItems="center" 
-                  justifyContent="center"
-                  boxShadow="sm"
-                >
-                  <Text fontSize="xs" fontWeight="bold" color="white">{childData.alerts}</Text>
-                </Box>
-              )}
-            </Box>
-            <Avatar name={authUser?.name || "Parent User"} size="md" bg={parentPrimaryColor} color="white">
-              <AvatarBadge boxSize='1.25em' bg='green.500' borderColor={parentCardBg} />
-            </Avatar>
-          </Flex>
+          <Button
+            leftIcon={<Icon as={FaEnvelopeOpen} />}
+            colorScheme="green"
+            variant="outline"
+          >
+            Contact Teachers
+          </Button>
         </Flex>
 
         {/* Child Selector */}
-        <Card mb={{ base: 6, md: 8 }} bg={parentCardBg} boxShadow="lg" borderRadius="xl">
-          <CardBody p={{ base: 4, md: 6 }}>
-            <Flex 
-              direction={{ base: 'column', md: 'row' }} 
-              justify="space-between" 
-              align={{ base: 'stretch', md: 'center' }}
-              gap={4}
-            >
-              <HStack spacing={3}>
-                <Icon as={FaUserGraduate} boxSize={6} color={parentPrimaryColor} />
-                <Text fontWeight="semibold" color={textColor} whiteSpace="nowrap">Viewing For:</Text>
-              </HStack>
-              <Select 
-                value={selectedChild} 
-                onChange={(e) => setSelectedChild(e.target.value)}
-                maxW={{ base: 'full', md: '300px' }}
-                size="lg"
-                bg={inputBg}
-                borderColor={subtleBorderColor}
-                borderRadius="md"
-                focusBorderColor={parentPrimaryColor}
-              >
-                <option value="alex">Alex Johnson ({children.alex.grade})</option>
-                <option value="emma">Emma Johnson ({children.emma.grade})</option>
-              </Select>
-              <HStack spacing={3} wrap="wrap" justify={{base: "center", md: "flex-end"}}>
-                <Badge colorScheme="green" variant="subtle" px={3} py={1}>{childData.grade}</Badge>
-                <Badge colorScheme="pink" variant="subtle" px={3} py={1}>{childData.courses} Courses</Badge>
-                <Badge colorScheme="green" variant="subtle" px={3} py={1}>Overall Grade: {childData.overallGrade}</Badge>
-              </HStack>
-            </Flex>
-          </CardBody>
-        </Card>
+        {children.length > 0 && (
+          <Card bg={parentCardBg} boxShadow="lg" mb={6}>
+            <CardBody>
+              <Flex align="center" gap={4}>
+                <Text fontWeight="semibold" color={textColor}>Select Child:</Text>
+                <Select
+                  value={selectedChild?.id || ''}
+                  onChange={(e) => handleChildChange(e.target.value)}
+                  maxW="300px"
+                >
+                  {children.map((child) => (
+                    <option key={child.id} value={child.id}>
+                      {child.name} ({child.grade})
+                    </option>
+                  ))}
+                </Select>
+              </Flex>
+            </CardBody>
+          </Card>
+        )}
 
-        {/* Stats Overview */}
-        <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={{ base: 4, md: 6 }} mb={{ base: 6, md: 8 }}>
-          <Card bg={parentCardBg} boxShadow="lg" borderRadius="xl" transition="all 0.2s ease-in-out" _hover={{ transform: 'translateY(-4px)', boxShadow: 'xl' }}>
+        {/* Stats Cards */}
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={8}>
+          <Card bg={parentCardBg} boxShadow="lg">
             <CardBody>
               <Stat>
-                <Flex align="center">
-                  <Box bg={parentIconContainerBg} p={3} borderRadius="lg" mr={4}>
-                    <Icon as={FaGraduationCap} boxSize={6} color={parentIconColor} />
-                  </Box>
-                  <Box>
-                    <StatLabel color={subtleTextColor} fontWeight="medium">Overall Grade</StatLabel>
-                    <StatNumber color={parentPrimaryColor} fontWeight="bold">{childData.overallGrade}</StatNumber>
-                  </Box>
-                </Flex>
+                <StatLabel color={subtleTextColor}>Total Children</StatLabel>
+                <StatNumber color={parentPrimaryColor}>{parentData.totalChildren}</StatNumber>
+                <StatHelpText color={subtleTextColor}>
+                  <Icon as={FaUserGraduate} mr={2} />
+                  Enrolled students
+                </StatHelpText>
               </Stat>
             </CardBody>
           </Card>
 
-          <Card bg={parentCardBg} boxShadow="lg" borderRadius="xl" transition="all 0.2s ease-in-out" _hover={{ transform: 'translateY(-4px)', boxShadow: 'xl' }}>
+          <Card bg={parentCardBg} boxShadow="lg">
             <CardBody>
               <Stat>
-                <Flex align="center">
-                  <Box bg={useColorModeValue('pink.50', 'pink.800')} p={3} borderRadius="lg" mr={4}> {/* Parent Secondary */}
-                    <Icon as={FaCalendarAlt} boxSize={6} color={parentSecondaryColor} />
-                  </Box>
-                  <Box>
-                    <StatLabel color={subtleTextColor} fontWeight="medium">Attendance</StatLabel>
-                    <StatNumber color={parentPrimaryColor} fontWeight="bold">{childData.attendance}%</StatNumber>
-                  </Box>
-                </Flex>
+                <StatLabel color={subtleTextColor}>Total Classes</StatLabel>
+                <StatNumber color={parentPrimaryColor}>{parentData.totalClasses}</StatNumber>
+                <StatHelpText color={subtleTextColor}>
+                  <Icon as={FaBook} mr={2} />
+                  Active courses
+                </StatHelpText>
               </Stat>
             </CardBody>
           </Card>
 
-          <Card bg={parentCardBg} boxShadow="lg" borderRadius="xl" transition="all 0.2s ease-in-out" _hover={{ transform: 'translateY(-4px)', boxShadow: 'xl' }}>
+          <Card bg={parentCardBg} boxShadow="lg">
             <CardBody>
               <Stat>
-                <Flex align="center">
-                  <Box bg={parentIconContainerBg} p={3} borderRadius="lg" mr={4}>
-                    <Icon as={FaChartLine} boxSize={6} color={parentIconColor} />
-                  </Box>
-                  <Box flex={1}>
-                    <StatLabel color={subtleTextColor} fontWeight="medium">Overall Progress</StatLabel>
-                    <StatNumber color={parentPrimaryColor} fontWeight="bold">{childData.progress}%</StatNumber>
-                    <Progress value={childData.progress} size="sm" colorScheme="green" mt={2} borderRadius="full" bg={useColorModeValue('green.100', 'green.700')} /> {/* Parent primary is green */}
-                  </Box>
-                </Flex>
+                <StatLabel color={subtleTextColor}>Upcoming Exams</StatLabel>
+                <StatNumber color={parentPrimaryColor}>{parentData.upcomingExams}</StatNumber>
+                <StatHelpText color={subtleTextColor}>
+                  <Icon as={FaCalendarAlt} mr={2} />
+                  This week
+                </StatHelpText>
               </Stat>
             </CardBody>
           </Card>
 
-          <Card bg={parentCardBg} boxShadow="lg" borderRadius="xl" transition="all 0.2s ease-in-out" _hover={{ transform: 'translateY(-4px)', boxShadow: 'xl' }}>
+          <Card bg={parentCardBg} boxShadow="lg">
             <CardBody>
               <Stat>
-                <Flex align="center">
-                  <Box bg={useColorModeValue('pink.50', 'pink.800')} p={3} borderRadius="lg" mr={4}> {/* Parent Secondary */}
-                    <Icon as={FaTrophy} boxSize={6} color={parentSecondaryColor} />
-                  </Box>
-                  <Box>
-                    <StatLabel color={subtleTextColor} fontWeight="medium">Study Streak</StatLabel>
-                    <StatNumber color={parentPrimaryColor} fontWeight="bold">{childData.streak} days</StatNumber>
-                  </Box>
-                </Flex>
+                <StatLabel color={subtleTextColor}>Alerts</StatLabel>
+                <StatNumber color={parentPrimaryColor}>{parentData.alerts}</StatNumber>
+                <StatHelpText color={subtleTextColor}>
+                  <Icon as={FaRegBell} mr={2} />
+                  Need attention
+                </StatHelpText>
               </Stat>
             </CardBody>
           </Card>
         </SimpleGrid>
 
-        {/* Main Content Grid */}
-        <Grid
-          templateColumns={{ base: "1fr", lg: "2.5fr 1.5fr" }} // Adjusted column ratio
-          gap={{ base: 6, md: 8 }}
-        >
-          {/* Left Column - Courses & Teachers */}
-          <GridItem>
-            <Tabs colorScheme="green" variant="soft-rounded" mb={{ base: 6, md: 8 }}> {/* Parent primary colorScheme */}
-              <TabList>
-                <Tab fontWeight="semibold">Enrolled Courses</Tab>
-                <Tab fontWeight="semibold">Teacher Contacts</Tab>
-              </TabList>
-              
-              <TabPanels>
-                <TabPanel px={0} pt={4}>
-                  <Card bg={parentCardBg} boxShadow="lg" borderRadius="xl">
-                    <CardHeader>
-                      <Flex justify="space-between" align="center">
-                        <HStack spacing={3}>
-                          <Icon as={FaBook} color={parentPrimaryColor} boxSize={6} />
-                          <Heading size="lg" color={generalHeadingColor}>{childData.name}'s Courses</Heading>
-                        </HStack>
-                      </Flex>
-                    </CardHeader>
-                    <CardBody>
-                      <Box overflowX="auto">
-                        <Table variant="simple" size="md">
-                          <Thead>
-                            <Tr>
-                              <Th color={subtleTextColor}>Course</Th>
-                              <Th color={subtleTextColor}>Progress</Th>
-                              <Th color={subtleTextColor}>Grade</Th>
-                              <Th color={subtleTextColor}>Last Activity</Th>
-                            </Tr>
-                          </Thead>
-                          <Tbody>
-                            {enrolledCourses.map(course => (
-                              <Tr key={course.id} _hover={{ bg: useColorModeValue('gray.50', 'gray.700') }}>
-                                <Td fontWeight="medium" color={textColor}>{course.title}</Td>
-                                <Td>
-                                  <Flex align="center">
-                                    <Progress
-                                      value={course.progress}
-                                      size="sm"
-                                      colorScheme="green" // Parent primary color
-                                      borderRadius="full"
-                                      w={{ base: "80px", md: "100px" }}
-                                      mr={2}
-                                      bg={useColorModeValue('green.100', 'green.700')}
-                                    />
-                                    <Text fontSize="sm" color={textColor}>{course.progress}%</Text>
-                                  </Flex>
-                                </Td>
-                                <Td>
-                                  <Badge
-                                    variant="subtle"
-                                    colorScheme={
-                                      course.grade.startsWith('A') ? 'green' :
-                                      course.grade.startsWith('B') ? 'blue' : // Parent primary might be blue in dark
-                                      course.grade.startsWith('C') ? 'yellow' : 'red'
-                                    }
-                                    px={2} py={0.5} borderRadius="md"
-                                  >
-                                    {course.grade}
-                                  </Badge>
-                                </Td>
-                                <Td fontSize="sm" color={textColor}>{course.lastActivity}</Td>
-                              </Tr>
-                            ))}
-                          </Tbody>
-                        </Table>
-                      </Box>
-                      <Flex justify="flex-end" mt={4}>
-                        <Button size="sm" colorScheme="green" variant="outline">View Detailed Reports</Button>
-                      </Flex>
-                    </CardBody>
-                  </Card>
-                </TabPanel>
-                
-                <TabPanel px={0} pt={4}>
-                  <Card bg={parentCardBg} boxShadow="lg" borderRadius="xl">
-                    <CardHeader>
-                      <Flex justify="space-between" align="center">
-                        <HStack spacing={3}>
-                          <Icon as={FaChalkboardTeacher} color={parentPrimaryColor} boxSize={6} />
-                          <Heading size="lg" color={generalHeadingColor}>Teacher Contacts</Heading>
-                        </HStack>
-                      </Flex>
-                    </CardHeader>
-                    <CardBody>
-                      <Box overflowX="auto">
-                        <Table variant="simple" size="md">
-                          <Thead>
-                            <Tr>
-                              <Th color={subtleTextColor}>Teacher</Th>
-                              <Th color={subtleTextColor}>Subject</Th>
-                              <Th color={subtleTextColor}>Contact</Th>
-                              <Th color={subtleTextColor}>Actions</Th>
-                            </Tr>
-                          </Thead>
-                          <Tbody>
-                            {teacherContacts.map(teacher => (
-                              <Tr key={teacher.id} _hover={{ bg: useColorModeValue('gray.50', 'gray.700') }}>
-                                <Td fontWeight="medium" color={textColor}>{teacher.name}</Td>
-                                <Td color={textColor}>{teacher.subject}</Td>
-                                <Td>
-                                  <VStack align="start" spacing={1}>
-                                    <HStack spacing={1}>
-                                      <Icon as={FaEnvelope} color={parentPrimaryColor} />
-                                      <Text fontSize="sm" color={textColor}>{teacher.email}</Text>
-                                    </HStack>
-                                    <HStack spacing={1}>
-                                      <Icon as={FaPhone} color={parentSecondaryColor} /> {/* Or another distinct color */}
-                                      <Text fontSize="sm" color={textColor}>{teacher.phone}</Text>
-                                    </HStack>
-                                  </VStack>
-                                </Td>
-                                <Td>
-                                  <Button size="xs" colorScheme="green" variant="outline">Message</Button>
-                                </Td>
-                              </Tr>
-                            ))}
-                          </Tbody>
-                        </Table>
-                      </Box>
-                    </CardBody>
-                  </Card>
-                </TabPanel>
-              </TabPanels>
-            </Tabs>
-          </GridItem>
+        {/* Main Content */}
+        {loading ? (
+          <Box textAlign="center" py={10}>
+            <Spinner size="lg" color={parentPrimaryColor} />
+            <Text mt={4}>Loading dashboard...</Text>
+          </Box>
+        ) : selectedChild ? (
+          <Tabs variant="enclosed" colorScheme="green">
+            <TabList>
+              <Tab>Child Overview</Tab>
+              <Tab>Class Progress</Tab>
+              <Tab>Communications</Tab>
+            </TabList>
 
-          {/* Right Column - Exams, Activities & Parent Actions */}
-          <GridItem>
-            <VStack spacing={{ base: 6, md: 8 }} align="stretch">
-              {/* Upcoming Exams */}
-              <Card bg={parentCardBg} boxShadow="lg" borderRadius="xl">
-                <CardHeader>
-                  <HStack spacing={3}>
-                    <Icon as={FaClock} color={parentSecondaryColor} boxSize={6} /> {/* Use parent secondary */}
-                    <Heading size="lg" color={generalHeadingColor}>Upcoming Exams</Heading>
-                  </HStack>
-                </CardHeader>
-                <CardBody>
-                  <VStack spacing={4} align="stretch">
-                    {upcomingExams.map(exam => (
-                      <Box key={exam.id} p={4} bg={useColorModeValue('pink.50', 'pink.800')} borderRadius="lg"> {/* Parent secondary shade */}
-                        <Flex justify="space-between" align="center" mb={1}>
-                          <Heading size="sm" color={useColorModeValue('pink.700', 'pink.200')}>{exam.title}</Heading>
-                          <Badge variant="subtle" colorScheme={getReadinessColor(exam.readiness)} px={2} py={0.5} borderRadius="md">
-                            {exam.readiness} Readiness
-                          </Badge>
-                        </Flex>
-                        <Flex justify="space-between" color={useColorModeValue('pink.600', 'pink.300')}>
-                          <Text fontSize="sm">{exam.date}</Text>
-                          <Text fontSize="sm">{exam.time}</Text>
-                        </Flex>
-                      </Box>
-                    ))}
-                    <Button size="sm" colorScheme="pink" variant="outline" w="full" mt={2}>View All Exams</Button>
-                  </VStack>
-                </CardBody>
-              </Card>
-
-              {/* Recent Activities */}
-              <Card bg={parentCardBg} boxShadow="lg" borderRadius="xl">
-                <CardHeader>
-                  <HStack spacing={3}>
-                    <Icon as={FaTasks} color={parentPrimaryColor} boxSize={6} />
-                    <Heading size="lg" color={generalHeadingColor}>Recent Activities</Heading>
-                  </HStack>
-                </CardHeader>
-                <CardBody>
-                  <VStack spacing={0} align="stretch">
-                    {recentActivities.map((activity, index) => (
-                      <Box 
-                        key={activity.id} 
-                        p={4}
-                        borderBottomWidth={index === recentActivities.length - 1 ? "0" : "1px"}
-                        borderColor={subtleBorderColor}
-                        bg={activity.type === 'alert' ? useColorModeValue('red.50', 'red.900') : 'transparent'}
-                        _hover={{bg: activity.type !== 'alert' && useColorModeValue('gray.50', 'gray.700')}}
-                        transition="background-color 0.2s ease-in-out"
-                      >
-                        <Flex justify="space-between" align="center">
-                          <VStack align="start" spacing={0}>
-                            <Flex align="center">
-                              {activity.type === 'alert' && (
-                                <Icon as={FaExclamationTriangle} color="red.500" mr={2} />
-                              )}
-                              <Text fontWeight="medium" color={textColor}>{activity.title}</Text>
-                            </Flex>
-                            <Text fontSize="sm" color={subtleTextColor}>{activity.time}</Text>
-                          </VStack>
-                          {activity.score && (
-                            <Badge 
-                              variant="subtle"
-                              colorScheme={
-                                activity.score.includes('A') ? 'green' : 
-                                activity.score.includes('B') ? 'blue' : // Parent primary (blue for dark)
-                                activity.score.includes('C') ? 'yellow' : 
-                                activity.score === 'Pending' ? 'gray' :
-                                parseInt(activity.score) > 80 ? 'green' : 
-                                parseInt(activity.score) > 60 ? 'blue' : 'orange' // Parent primary for medium scores
-                              }
-                              px={2} py={0.5} borderRadius="md"
-                            >
-                              {activity.score}
+            <TabPanels>
+              {/* Child Overview Tab */}
+              <TabPanel>
+                <Box>
+                  <Heading size="md" color={parentPrimaryColor} mb={4}>
+                    {selectedChild.name}'s Overview
+                  </Heading>
+                  
+                  <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} mb={6}>
+                    <Card bg={parentCardBg} boxShadow="lg">
+                      <CardHeader>
+                        <Heading size="sm" color={parentPrimaryColor}>
+                          Academic Performance
+                        </Heading>
+                      </CardHeader>
+                      <CardBody>
+                        <VStack spacing={4} align="stretch">
+                          <Flex justify="space-between" align="center">
+                            <Text color={textColor}>Overall Grade:</Text>
+                            <Badge colorScheme="green" fontSize="md">
+                              {selectedChild.overallGrade}
                             </Badge>
-                          )}
-                        </Flex>
-                      </Box>
-                    ))}
-                    <Button size="sm" colorScheme="green" variant="outline" w="full" mt={4}>View All Activities</Button>
-                  </VStack>
-                </CardBody>
-              </Card>
+                          </Flex>
+                          <Flex justify="space-between" align="center">
+                            <Text color={textColor}>Progress:</Text>
+                            <Text color={textColor} fontWeight="semibold">
+                              {selectedChild.progress}%
+                            </Text>
+                          </Flex>
+                          <Progress 
+                            value={selectedChild.progress} 
+                            colorScheme="green" 
+                            size="sm"
+                          />
+                          <Flex justify="space-between" align="center">
+                            <Text color={textColor}>Attendance:</Text>
+                            <Text color={textColor} fontWeight="semibold">
+                              {selectedChild.attendance}%
+                            </Text>
+                          </Flex>
+                          <Flex justify="space-between" align="center">
+                            <Text color={textColor}>Study Streak:</Text>
+                            <Text color={textColor} fontWeight="semibold">
+                              {selectedChild.streak} days
+                            </Text>
+                          </Flex>
+                        </VStack>
+                      </CardBody>
+                    </Card>
 
-              {/* Parent Actions */}
-              <Card bg={parentCardBg} boxShadow="lg" borderRadius="xl">
-                <CardHeader>
-                  <HStack spacing={3}>
-                    <Icon as={FaUserGraduate} color={parentPrimaryColor} boxSize={6} />
-                    <Heading size="lg" color={generalHeadingColor}>Parent Actions</Heading>
-                  </HStack>
-                </CardHeader>
-                <CardBody>
-                  <VStack spacing={3} align="stretch">
-                    <Button colorScheme="green" variant="solid" leftIcon={<Icon as={FaCalendarAlt} />}> {/* Parent Primary colorScheme */}
-                      Schedule Parent-Teacher Meeting
-                    </Button>
-                    <Button colorScheme="green" variant="outline" leftIcon={<Icon as={FaBook} />}>
-                      View Curriculum Plan
-                    </Button>
-                    <Button colorScheme="green" variant="outline" leftIcon={<Icon as={FaEnvelope} />}>
-                      Message All Teachers
-                    </Button>
-                    <Button colorScheme="green" variant="outline" leftIcon={<Icon as={FaChartLine} />}>
-                      View Progress Report
-                    </Button>
-                  </VStack>
-                </CardBody>
-              </Card>
-            </VStack>
-          </GridItem>
-        </Grid>
+                    <Card bg={parentCardBg} boxShadow="lg">
+                      <CardHeader>
+                        <Heading size="sm" color={parentPrimaryColor}>
+                          Upcoming Events
+                        </Heading>
+                      </CardHeader>
+                      <CardBody>
+                        <VStack spacing={3} align="stretch">
+                          <Box p={3} bg="orange.50" borderRadius="md">
+                            <Text fontWeight="semibold" color="orange.700">
+                              Next Exam: {selectedChild.nextExam}
+                            </Text>
+                          </Box>
+                          {selectedChild.alerts > 0 && (
+                            <Box p={3} bg="red.50" borderRadius="md">
+                              <Text fontWeight="semibold" color="red.700">
+                                {selectedChild.alerts} alert(s) need attention
+                              </Text>
+                            </Box>
+                          )}
+                        </VStack>
+                      </CardBody>
+                    </Card>
+                  </SimpleGrid>
+                </Box>
+              </TabPanel>
+
+              {/* Class Progress Tab */}
+              <TabPanel>
+                <Box>
+                  <Heading size="md" color={parentPrimaryColor} mb={4}>
+                    Class Progress
+                  </Heading>
+                  <Text color={subtleTextColor} mb={6}>
+                    Detailed progress for each class
+                  </Text>
+                  
+                  <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                    {childClasses.map((cls) => (
+                      <Card key={cls.id} bg={parentCardBg} boxShadow="lg">
+                        <CardHeader>
+                          <Flex justify="space-between" align="center">
+                            <Box>
+                              <Heading size="md" color={parentPrimaryColor}>
+                                {cls.name}
+                              </Heading>
+                              <Text color={subtleTextColor} fontSize="sm">
+                                {cls.subject}
+                              </Text>
+                            </Box>
+                            <Badge colorScheme="green">
+                              {cls.grade}
+                            </Badge>
+                          </Flex>
+                        </CardHeader>
+                        <CardBody>
+                          <VStack spacing={3} align="stretch">
+                            <Flex justify="space-between" align="center">
+                              <Text fontSize="sm" color={subtleTextColor}>Teacher:</Text>
+                              <Text fontSize="sm" color={textColor}>
+                                {cls.teacher}
+                              </Text>
+                            </Flex>
+                            <Flex justify="space-between" align="center">
+                              <Text fontSize="sm" color={subtleTextColor}>Progress:</Text>
+                              <Text fontSize="sm" color={textColor} fontWeight="semibold">
+                                {cls.progress}%
+                              </Text>
+                            </Flex>
+                            <Progress 
+                              value={cls.progress} 
+                              colorScheme="green" 
+                              size="sm"
+                            />
+                            <Box p={2} bg="blue.50" borderRadius="md">
+                              <Text fontSize="xs" color="blue.700">
+                                Next: {cls.nextAssignment}
+                              </Text>
+                            </Box>
+                          </VStack>
+                        </CardBody>
+                      </Card>
+                    ))}
+                  </SimpleGrid>
+                </Box>
+              </TabPanel>
+
+              {/* Communications Tab */}
+              <TabPanel>
+                <Box>
+                  <Heading size="md" color={parentPrimaryColor} mb={4}>
+                    Teacher Communications
+                  </Heading>
+                  <Text color={subtleTextColor} mb={6}>
+                    Stay connected with your child's teachers
+                  </Text>
+                  
+                  <Alert status="info" mb={6}>
+                    <AlertIcon />
+                    <Box>
+                      <AlertTitle>Communication Features Coming Soon!</AlertTitle>
+                      <AlertDescription>
+                        Direct messaging with teachers, progress reports, and notifications will be available in the next update.
+                      </AlertDescription>
+                    </Box>
+                  </Alert>
+                </Box>
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        ) : (
+          <Box textAlign="center" py={10}>
+            <Icon as={FaUserGraduate} size="3xl" color={subtleTextColor} mb={4} />
+            <Text fontSize="lg" color={textColor} mb={2}>
+              No children linked to your account
+            </Text>
+            <Text color={subtleTextColor} mb={4}>
+              Contact your school administrator to link your children's accounts.
+            </Text>
+          </Box>
+        )}
       </Container>
     </Box>
   );

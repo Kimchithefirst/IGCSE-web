@@ -54,9 +54,47 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate password length
+    if (formData.password.length < 8) {
+      toast({
+        title: 'Password too short',
+        description: 'Password must be at least 8 characters long',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: 'Passwords do not match',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast({
+        title: 'Invalid email format',
+        description: 'Please enter a valid email address',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    
+    // Validate username (alphanumeric and underscores only)
+    const usernameRegex = /^[a-zA-Z0-9_]+$/;
+    if (!usernameRegex.test(formData.username)) {
+      toast({
+        title: 'Invalid username',
+        description: 'Username can only contain letters, numbers, and underscores',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -89,9 +127,9 @@ const Register = () => {
       
       // Navigate based on user role
       if (user.role === 'teacher') {
-        navigate('/teacher-dashboard');
+        navigate('/tdashboard');
       } else if (user.role === 'parent') {
-        navigate('/parent-dashboard');
+        navigate('/pdashboard');
       } else {
         // Default to student dashboard
         navigate('/dashboard');

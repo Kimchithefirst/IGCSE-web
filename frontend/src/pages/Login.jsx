@@ -45,9 +45,9 @@ const Login = () => {
       
       // Navigate based on user role
       if (user.role === 'teacher') {
-        navigate('/teacher-dashboard');
+        navigate('/tdashboard');
       } else if (user.role === 'parent') {
-        navigate('/parent-dashboard');
+        navigate('/pdashboard');
       } else {
         // Default to student dashboard
         navigate('/dashboard');

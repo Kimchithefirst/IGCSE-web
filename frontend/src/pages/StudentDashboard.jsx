@@ -28,9 +28,36 @@ import {
   Spinner,
   Alert,
   AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  useToast,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Divider,
+  FormControl,
+  FormLabel
 } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
-import { supabaseApi } from '../services/supabaseApi';
 import { 
   FaBook, 
   FaCalendarAlt,
@@ -40,13 +67,28 @@ import {
   FaGraduationCap, 
   FaRegBell, 
   FaTasks, 
-  FaTrophy 
+  FaTrophy,
+  FaPlus,
+  FaSearch,
+  FaUsers,
+  FaChalkboardTeacher,
+  FaEye,
+  FaSignInAlt
 } from 'react-icons/fa';
 import { useSupabaseAuth } from '../context/SupabaseAuthContext';
+import { supabase } from '../lib/supabase';
 
 const StudentDashboard = () => {
-  // Hooks
-  const { user: authUser } = useSupabaseAuth(); // Get authenticated user
+  const { user: authUser } = useSupabaseAuth();
+  const toast = useToast();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isJoinClassOpen, setIsJoinClassOpen] = useState(false);
+  const [classCode, setClassCode] = useState('');
+  const [enrolledClasses, setEnrolledClasses] = useState([]);
+  const [availableClasses, setAvailableClasses] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [joiningClass, setJoiningClass] = useState(false);
 
   // Theme-based colors
   const pageBg = useColorModeValue('secondary.100', 'secondary.900');
@@ -57,74 +99,161 @@ const StudentDashboard = () => {
   const textColor = useColorModeValue('gray.700', 'gray.500');
   const subtleTextColor = useColorModeValue('gray.500', 'gray.400');
   const studentIconContainerBg = useColorModeValue('teal.50', 'teal.800');
-  const studentIconColor = studentPrimaryColor; // Derived from studentPrimaryColor, so after it
+  const studentIconColor = studentPrimaryColor;
   const subtleBorderColor = useColorModeValue('gray.200', 'gray.700');
 
-  // State
-  // Mock data for userData - would come from API in a real application
-  const [userData, setUserData] = useState({
-    name: 'Alex Johnson', // This would ideally come from useAuth() context
-    courses: 4,
-    nextExam: 'Mathematics - 15 May 2024',
-    progress: 68,
-    streak: 7
-  });
-  const [inProgressQuizzes, setInProgressQuizzes] = useState([]);
-  const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
-  const [dashboardError, setDashboardError] = useState(null);
-  const [enrolledCoursesData, setEnrolledCoursesData] = useState([]);
-  const [upcomingExamsData, setUpcomingExamsData] = useState([]);
-  const [recentActivitiesData, setRecentActivitiesData] = useState([]);
-
-  // Effects
+  // Load student data on component mount
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      if (!authUser?._id) {
-        setIsLoadingDashboard(false);
-        return;
-      }
-      try {
-        setIsLoadingDashboard(true);
-        const response = await supabaseApi.dashboard.getDashboardData(); // Use Supabase API
-        if (response && response.success && response.data) {
-          setUserData(prevData => ({
-            ...prevData,
-            name: authUser?.name || response.data.userName || prevData.name,
-            courses: response.data.totalEnrolledCourses || prevData.courses,
-            progress: response.data.overallProgress || prevData.progress,
-            streak: response.data.streak?.current || prevData.streak,
-          }));
-          setInProgressQuizzes(response.data.inProgressQuizzes || []);
-          setEnrolledCoursesData(response.data.enrolledCourses || []);
-          setUpcomingExamsData(response.data.upcomingExams || []);
-          setRecentActivitiesData(response.data.recentActivity || []);
-
-          // Update a portion of userData state for the 'Next Exam' card from the new upcomingExamsData
-          if (response.data.upcomingExams && response.data.upcomingExams.length > 0) {
-            const nextExamData = response.data.upcomingExams[0];
-            setUserData(prevData => ({
-              ...prevData,
-              nextExam: `${nextExamData.title} - ${nextExamData.date}`
-            }));
-          } else {
-            setUserData(prevData => ({
-              ...prevData,
-              nextExam: 'No upcoming exams scheduled'
-            }));
-          }
-        } else {
-          setDashboardError('Failed to load dashboard data properly.');
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        setDashboardError(error.message || 'An error occurred while fetching dashboard data.');
-      } finally {
-        setIsLoadingDashboard(false);
-      }
-    };
-
-    fetchDashboardData();
+    if (authUser) {
+      loadStudentData();
+    }
   }, [authUser]);
+
+  const loadStudentData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load enrolled classes
+      const { data: enrolledData, error: enrolledError } = await supabase
+        .from('class_students')
+        .select('*, class:classes(*)')
+        .eq('student_id', authUser.id);
+
+      if (enrolledError) {
+        console.error('Error loading enrolled classes:', enrolledError);
+      } else {
+        setEnrolledClasses(enrolledData || []);
+      }
+
+      // Load available classes (classes not enrolled in)
+      const { data: availableData, error: availableError } = await supabase
+        .from('classes')
+        .select('*')
+        .not('id', 'in', `(${enrolledData?.map(c => c.class_id).join(',') || '00000000-0000-0000-0000-000000000000'})`);
+
+      if (availableError) {
+        console.error('Error loading available classes:', availableError);
+      } else {
+        setAvailableClasses(availableData || []);
+      }
+
+      // Load assignments for enrolled classes
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from('assignments')
+        .select(`
+          *,
+          class:classes(name, subject)
+        `)
+        .in('class_id', enrolledData?.map(c => c.class_id) || []);
+
+      if (assignmentsError) {
+        console.error('Error loading assignments:', assignmentsError);
+      } else {
+        const assignmentsWithClassNames = assignmentsData?.map(assignment => ({
+          ...assignment,
+          class_name: assignment.class?.name || 'Unknown Class',
+          class_subject: assignment.class?.subject || 'Unknown Subject'
+        })) || [];
+        setAssignments(assignmentsWithClassNames);
+      }
+    } catch (error) {
+      console.error('Error loading student data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const joinClassByCode = async () => {
+    if (!classCode.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please enter a class code',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    try {
+      setJoiningClass(true);
+
+      // Find class by code
+      const { data: classData, error: classError } = await supabase
+        .from('classes')
+        .select('*')
+        .eq('class_code', classCode.toUpperCase())
+        .single();
+
+      if (classError || !classData) {
+        throw new Error('Class not found. Please check the class code.');
+      }
+
+      // Check if already enrolled
+      const { data: existingEnrollment } = await supabase
+        .from('class_students')
+        .select('*')
+        .eq('class_id', classData.id)
+        .eq('student_id', authUser.id)
+        .single();
+
+      if (existingEnrollment) {
+        throw new Error('You are already enrolled in this class.');
+      }
+
+      // Check if class is full
+      const { count: studentCount } = await supabase
+        .from('class_students')
+        .select('*', { count: 'exact' })
+        .eq('class_id', classData.id);
+
+      if (studentCount >= classData.max_students) {
+        throw new Error('This class is full.');
+      }
+
+      // Join the class
+      const { error: joinError } = await supabase
+        .from('class_students')
+        .insert({
+          class_id: classData.id,
+          student_id: authUser.id
+        });
+
+      if (joinError) {
+        throw joinError;
+      }
+
+      toast({
+        title: 'Success!',
+        description: `You have joined ${classData.name}`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      setClassCode('');
+      setIsJoinClassOpen(false);
+      loadStudentData(); // Reload data
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setJoiningClass(false);
+    }
+  };
+
+  const studentData = {
+    name: authUser?.name || 'Student',
+    enrolledClasses: enrolledClasses.length,
+    totalProgress: enrolledClasses.length > 0 ? 75 : 0, // Mock progress
+    streak: 7,
+    nextExam: 'Mathematics - 15 May 2024'
+  };
 
   return (
     <Box minH="100vh" bg={pageBg} py={{ base: 6, md: 10 }}>
@@ -132,304 +261,407 @@ const StudentDashboard = () => {
         {/* Header Section */}
         <Flex justify="space-between" align="center" mb={{ base: 6, md: 8 }}>
           <Box>
-            <Heading as="h1" size="xl" mb={1} color={studentPrimaryColor}> {/* Changed to student primary */}
-              Student Dashboard
+            <Heading size="lg" color={generalHeadingColor} mb={2}>
+              Welcome back, {studentData.name}!
             </Heading>
-            <Text color={textColor}>
-              Welcome back, {authUser?.name || userData.name}! Continue your learning journey.
+            <Text color={subtleTextColor}>
+              Continue your learning journey
             </Text>
           </Box>
-          <Flex align="center">
-            <Box mr={4} position="relative" cursor="pointer" _hover={{ color: studentPrimaryColor }}>
-              <Icon as={FaRegBell} boxSize={6} color={subtleTextColor} />
-              <Box 
-                position="absolute" 
-                top="-5px" 
-                right="-5px" 
-                bg="red.500" 
-                borderRadius="full" 
-                w="18px" 
-                h="18px" 
-                display="flex" 
-                alignItems="center" 
-                justifyContent="center"
-                boxShadow="sm"
-              >
-                <Text fontSize="xs" fontWeight="bold" color="white">3</Text>
-              </Box>
-            </Box>
-            <Avatar name={authUser?.name || userData.name} size="md" bg={studentPrimaryColor} color="white">
-              <AvatarBadge boxSize='1.25em' bg='green.500' borderColor={studentCardBg} />
-            </Avatar>
-          </Flex>
+          <Button
+            leftIcon={<Icon as={FaPlus} />}
+            colorScheme="teal"
+            onClick={() => setIsJoinClassOpen(true)}
+          >
+            Join Class
+          </Button>
         </Flex>
 
-        {/* Stats Overview */}
-        <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={{ base: 4, md: 6 }} mb={{ base: 6, md: 8 }}>
-          <Card 
-            bg={studentCardBg}
-            boxShadow="lg"
-            borderRadius="xl"
-            transition="all 0.2s ease-in-out"
-            _hover={{ transform: 'translateY(-4px)', boxShadow: 'xl' }}
-          >
+        {/* Stats Cards */}
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={8}>
+          <Card bg={studentCardBg} boxShadow="lg">
             <CardBody>
               <Stat>
-                <Flex align="center">
-                  <Box 
-                    bg={studentIconContainerBg}
-                    p={3}
-                    borderRadius="lg" 
-                    mr={4}
-                  >
-                    <Icon as={FaGraduationCap} boxSize={6} color={studentIconColor} />
-                  </Box>
-                  <Box>
-                    <StatLabel color={subtleTextColor} fontWeight="medium">Enrolled Courses</StatLabel>
-                    <StatNumber color={studentPrimaryColor} fontWeight="bold">{userData.courses}</StatNumber>
-                  </Box>
-                </Flex>
+                <StatLabel color={subtleTextColor}>Enrolled Classes</StatLabel>
+                <StatNumber color={studentPrimaryColor}>{studentData.enrolledClasses}</StatNumber>
+                <StatHelpText color={subtleTextColor}>
+                  <Icon as={FaBook} mr={2} />
+                  Active courses
+                </StatHelpText>
               </Stat>
             </CardBody>
           </Card>
 
-          <Card bg={studentCardBg} boxShadow="lg" borderRadius="xl" transition="all 0.2s ease-in-out" _hover={{ transform: 'translateY(-4px)', boxShadow: 'xl' }}>
+          <Card bg={studentCardBg} boxShadow="lg">
             <CardBody>
               <Stat>
-                <Flex align="center">
-                  <Box bg={useColorModeValue('orange.50', 'orange.800')} p={3} borderRadius="lg" mr={4}> {/* Student secondary for this one */}
-                    <Icon as={FaCalendarAlt} boxSize={6} color={studentSecondaryColor} />
-                  </Box>
-                  <Box>
-                    <StatLabel color={subtleTextColor} fontWeight="medium">Next Exam</StatLabel>
-                    <StatNumber fontSize="md" color={studentSecondaryColor} fontWeight="bold">{userData.nextExam}</StatNumber>
-                  </Box>
-                </Flex>
+                <StatLabel color={subtleTextColor}>Overall Progress</StatLabel>
+                <StatNumber color={studentPrimaryColor}>{studentData.totalProgress}%</StatNumber>
+                <StatHelpText color={subtleTextColor}>
+                  <Icon as={FaChartLine} mr={2} />
+                  Course completion
+                </StatHelpText>
               </Stat>
             </CardBody>
           </Card>
 
-          <Card bg={studentCardBg} boxShadow="lg" borderRadius="xl" transition="all 0.2s ease-in-out" _hover={{ transform: 'translateY(-4px)', boxShadow: 'xl' }}>
+          <Card bg={studentCardBg} boxShadow="lg">
             <CardBody>
               <Stat>
-                <Flex align="center">
-                  <Box bg={studentIconContainerBg} p={3} borderRadius="lg" mr={4}>
-                    <Icon as={FaChartLine} boxSize={6} color={studentIconColor} />
-                  </Box>
-                  <Box flex={1}>
-                    <StatLabel color={subtleTextColor} fontWeight="medium">Overall Progress</StatLabel>
-                    <StatNumber color={studentPrimaryColor} fontWeight="bold">{userData.progress}%</StatNumber>
-                    <Progress value={userData.progress} size="sm" colorScheme="teal" mt={2} borderRadius="full" bg={useColorModeValue('teal.100', 'teal.700')} /> {/* Assuming student primary is teal */}
-                  </Box>
-                </Flex>
+                <StatLabel color={subtleTextColor}>Study Streak</StatLabel>
+                <StatNumber color={studentPrimaryColor}>{studentData.streak} days</StatNumber>
+                <StatHelpText color={subtleTextColor}>
+                  <Icon as={FaTrophy} mr={2} />
+                  Keep it up!
+                </StatHelpText>
               </Stat>
             </CardBody>
           </Card>
 
-          <Card bg={studentCardBg} boxShadow="lg" borderRadius="xl" transition="all 0.2s ease-in-out" _hover={{ transform: 'translateY(-4px)', boxShadow: 'xl' }}>
+          <Card bg={studentCardBg} boxShadow="lg">
             <CardBody>
               <Stat>
-                <Flex align="center">
-                  <Box bg={useColorModeValue('yellow.50', 'yellow.800')} p={3} borderRadius="lg" mr={4}> {/* Student secondary for this one */}
-                    <Icon as={FaTrophy} boxSize={6} color={studentSecondaryColor} />
-                  </Box>
-                  <Box>
-                    <StatLabel color={subtleTextColor} fontWeight="medium">Study Streak</StatLabel>
-                    <StatNumber color={studentPrimaryColor} fontWeight="bold">{userData.streak} days</StatNumber>
-                    <StatHelpText color={subtleTextColor}>Keep it up!</StatHelpText>
-                  </Box>
-                </Flex>
+                <StatLabel color={subtleTextColor}>Next Exam</StatLabel>
+                <StatNumber color={studentPrimaryColor} fontSize="lg">15 May</StatNumber>
+                <StatHelpText color={subtleTextColor}>
+                  <Icon as={FaCalendarAlt} mr={2} />
+                  Mathematics
+                </StatHelpText>
               </Stat>
             </CardBody>
           </Card>
         </SimpleGrid>
 
-        {/* Continue Learning Section */}
-        {isLoadingDashboard && (
-          <Flex justify="center" my={8}><Spinner size="xl" color={studentPrimaryColor} /></Flex>
-        )}
-        {dashboardError && (
-          <Alert status="error" my={4} borderRadius="md">
-            <AlertIcon />
-            {dashboardError}
-          </Alert>
-        )}
-        {!isLoadingDashboard && !dashboardError && inProgressQuizzes.length > 0 && (
-          <Box mb={{ base: 6, md: 8 }}>
-            <Card bg={studentCardBg} boxShadow="lg" borderRadius="xl">
-              <CardHeader>
-                <HStack>
-                  <Icon as={FaPlayCircle} color={studentPrimaryColor} boxSize={6} />
-                  <Heading size="lg" color={studentPrimaryColor}>Continue Learning</Heading>
-                </HStack>
-              </CardHeader>
-              <CardBody>
-                <VStack spacing={4} align="stretch">
-                  {inProgressQuizzes.map(quiz => (
-                    <Box
-                      key={quiz.attemptId}
-                      p={4}
-                      bg={useColorModeValue('secondary.50', 'secondary.700')}
-                      borderRadius="lg"
-                      borderWidth="1px"
-                      borderColor={subtleBorderColor}
-                      _hover={{ borderColor: studentPrimaryColor, boxShadow: 'sm' }}
-                      transition="all 0.2s ease-in-out"
-                    >
-                      <Flex justify="space-between" align="center">
-                        <Box>
-                          <Heading size="md" color={studentPrimaryColor} _dark={{ color: 'teal.200' }}>{quiz.quizTitle}</Heading>
-                          <Text fontSize="sm" color={subtleTextColor}>Subject: {quiz.subject}</Text>
-                          {quiz.topicTags && quiz.topicTags.length > 0 && (
-                             <Text fontSize="xs" color={subtleTextColor} mt={1}>Topics: {quiz.topicTags.join(', ')}</Text>
-                          )}
-                        </Box>
-                        <Button
-                          as={RouterLink}
-                          to={`/exam/attempt/${quiz.attemptId}`}
-                          bg={studentPrimaryColor}
-                          color="white"
-                          _hover={{ bg: useColorModeValue('teal.500', 'teal.300')}} // Adjusted hover for dark mode
-                        >
-                          Continue Quiz
-                        </Button>
-                      </Flex>
-                    </Box>
-                  ))}
-                </VStack>
-              </CardBody>
-            </Card>
-          </Box>
-        )}
+        {/* Main Content */}
+        <Tabs variant="enclosed" colorScheme="teal">
+          <TabList>
+            <Tab>My Classes</Tab>
+            <Tab>Assignments</Tab>
+            <Tab>Available Classes</Tab>
+            <Tab>Progress</Tab>
+          </TabList>
 
-        {/* Main Content Grid */}
-        <Grid
-          templateColumns={{ base: "1fr", lg: "2.5fr 1.5fr" }} // Adjusted column ratio
-          gap={{ base: 6, md: 8 }}
-        >
-          {/* Left Column - My Courses */}
-          <GridItem>
-            <Card bg={studentCardBg} boxShadow="lg" borderRadius="xl">
-              <CardHeader>
-                <Flex justify="space-between" align="center">
-                  <HStack>
-                    <Icon as={FaBook} color={studentPrimaryColor} boxSize={6} />
-                    <Heading size="lg" color={studentPrimaryColor}>My Courses</Heading> {/* Changed to student primary */}
-                  </HStack>
-                  <Button size="sm" variant="outline" borderColor={studentPrimaryColor} color={studentPrimaryColor} _hover={{bg: useColorModeValue('teal.50', 'teal.800')}}>View All</Button>
-                </Flex>
-              </CardHeader>
-              <CardBody>
-                <VStack spacing={5} align="stretch">
-                  {enrolledCoursesData.map(course => (
-                    <Box
-                      key={course.id}
-                      p={4}
-                      bg={useColorModeValue('secondary.50', 'secondary.700')}
-                      borderRadius="lg"
-                      borderWidth="1px"
-                      borderColor={subtleBorderColor}
-                      _hover={{ borderColor: studentPrimaryColor, boxShadow: 'sm' }}
-                      transition="all 0.2s ease-in-out"
-                    >
-                      <Flex justify="space-between" align="center" mb={2}>
-                        <HStack>
-                          <Heading size="md" color={studentPrimaryColor} _dark={{ color: 'teal.200' }}>{course.title}</Heading> {/* Student primary, lighter in dark mode */}
-                          {course.badge && (
-                            <Badge colorScheme={course.badge === 'New' ? 'green' : 'purple'} variant="subtle">
-                              {course.badge}
-                            </Badge>
-                          )}
-                        </HStack>
-                        <Text fontSize="sm" color={subtleTextColor} fontWeight="medium">{course.progress}%</Text>
-                      </Flex>
-                      <Progress value={course.progress} size="sm" colorScheme="teal" mb={3} borderRadius="full" bg={useColorModeValue('teal.100', 'teal.700')} />
-                      <Flex justify="space-between" align="center" mt={2}>
-                        <Text fontSize="sm" color={subtleTextColor}>Next: {course.nextLesson}</Text>
-                        <Button size="sm" bg={studentPrimaryColor} color="white" _hover={{ bg: useColorModeValue('teal.500', 'teal.200')}}>Continue</Button>
-                      </Flex>
-                    </Box>
-                  ))}
-                </VStack>
-              </CardBody>
-            </Card>
-          </GridItem>
-
-          {/* Right Column - Exams & Activities */}
-          <GridItem>
-            <VStack spacing={{ base: 6, md: 8 }} align="stretch">
-              {/* Upcoming Exams */}
-              <Card bg={studentCardBg} boxShadow="lg" borderRadius="xl">
-                <CardHeader>
-                  <HStack>
-                    <Icon as={FaClock} color={studentSecondaryColor} boxSize={6} />
-                    <Heading size="lg" color={studentSecondaryColor}>Upcoming Exams</Heading> {/* Student Secondary */}
-                  </HStack>
-                </CardHeader>
-                <CardBody>
-                  <VStack spacing={4} align="stretch">
-                    {upcomingExamsData.map(exam => (
-                      <Box key={exam.id} p={4} bg={useColorModeValue('orange.50', 'orange.800')} borderRadius="lg">
-                        <Heading size="sm" mb={1} color={useColorModeValue('orange.700', 'orange.200')}>{exam.title}</Heading>
-                        <Flex justify="space-between" color={useColorModeValue('orange.600', 'orange.300')}>
-                          <Text fontSize="sm">{exam.date}</Text>
-                          <Text fontSize="sm">{exam.time}</Text>
-                        </Flex>
-                      </Box>
-                    ))}
-                    <Button size="sm" variant="outline" borderColor={studentSecondaryColor} color={studentSecondaryColor} _hover={{bg: useColorModeValue('orange.50', 'orange.800')}} w="full" mt={2}>
-                      View All Exams
-                    </Button>
-                  </VStack>
-                </CardBody>
-              </Card>
-
-              {/* Recent Activities */}
-              <Card bg={studentCardBg} boxShadow="lg" borderRadius="xl">
-                <CardHeader>
-                  <HStack>
-                    <Icon as={FaTasks} color={studentPrimaryColor} boxSize={6} />
-                    <Heading size="lg" color={studentPrimaryColor}>Recent Activities</Heading> {/* Student Primary */}
-                  </HStack>
-                </CardHeader>
-                <CardBody>
-                  <VStack spacing={0} align="stretch">
-                    {recentActivitiesData.map((activity, index) => (
-                      <Box
-                        key={activity.id}
-                        p={4}
-                        borderBottomWidth={index === recentActivitiesData.length - 1 ? "0" : "1px"}
-                        borderColor={subtleBorderColor}
-                      >
+          <TabPanels>
+            {/* My Classes Tab */}
+            <TabPanel>
+              {loading ? (
+                <Box textAlign="center" py={10}>
+                  <Spinner size="lg" color={studentPrimaryColor} />
+                  <Text mt={4}>Loading your classes...</Text>
+                </Box>
+              ) : enrolledClasses.length === 0 ? (
+                <Box textAlign="center" py={10}>
+                  <Icon as={FaBook} size="3xl" color={subtleTextColor} mb={4} />
+                  <Text fontSize="lg" color={textColor} mb={2}>
+                    No classes enrolled yet
+                  </Text>
+                  <Text color={subtleTextColor} mb={4}>
+                    Join a class to get started with your learning
+                  </Text>
+                  <Button
+                    leftIcon={<Icon as={FaPlus} />}
+                    colorScheme="teal"
+                    onClick={() => setIsJoinClassOpen(true)}
+                  >
+                    Join Your First Class
+                  </Button>
+                </Box>
+              ) : (
+                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                  {enrolledClasses.map((enrollment) => (
+                    <Card key={enrollment.id} bg={studentCardBg} boxShadow="lg">
+                      <CardHeader>
                         <Flex justify="space-between" align="center">
-                          <VStack align="start" spacing={0}>
-                            <Text fontWeight="medium" color={textColor}>{activity.title}</Text>
-                            <Text fontSize="sm" color={subtleTextColor}>{activity.time}</Text>
-                          </VStack>
-                          {activity.score && (
-                            <Badge 
-                              variant="subtle"
-                              colorScheme={
-                                activity.score === 'Pending' ? 'yellow' : 
-                                parseInt(activity.score) > 80 ? 'green' : 
-                                parseInt(activity.score) > 60 ? 'teal' : 'orange'
-                              }
-                            >
-                              {activity.score}
-                            </Badge>
-                          )}
+                          <Box>
+                            <Heading size="md" color={studentPrimaryColor}>
+                              {enrollment.class.name}
+                            </Heading>
+                            <Text color={subtleTextColor} fontSize="sm">
+                              {enrollment.class.subject}
+                            </Text>
+                          </Box>
+                          <Badge colorScheme="teal">
+                            Enrolled
+                          </Badge>
                         </Flex>
-                      </Box>
+                      </CardHeader>
+                      <CardBody>
+                        <Text color={textColor} mb={4}>
+                          {enrollment.class.description || 'No description provided'}
+                        </Text>
+                        <VStack spacing={3} align="stretch">
+                          <Flex justify="space-between" align="center">
+                            <Text fontSize="sm" color={subtleTextColor}>Teacher:</Text>
+                            <Text fontSize="sm" color={textColor}>
+                              {enrollment.class.teacher?.full_name || 'Unknown'}
+                            </Text>
+                          </Flex>
+                          <Flex justify="space-between" align="center">
+                            <Text fontSize="sm" color={subtleTextColor}>Class Code:</Text>
+                            <Badge variant="outline" colorScheme="teal">
+                              {enrollment.class.class_code}
+                            </Badge>
+                          </Flex>
+                        </VStack>
+                        <Flex gap={2} mt={4}>
+                          <Button
+                            size="sm"
+                            leftIcon={<Icon as={FaPlayCircle} />}
+                            colorScheme="teal"
+                            variant="outline"
+                            as={RouterLink}
+                            to={`/courses/${enrollment.class.id}`}
+                          >
+                            Start Learning
+                          </Button>
+                          <Button
+                            size="sm"
+                            leftIcon={<Icon as={FaEye} />}
+                            variant="ghost"
+                            colorScheme="teal"
+                          >
+                            View Details
+                          </Button>
+                        </Flex>
+                      </CardBody>
+                    </Card>
+                  ))}
+                </SimpleGrid>
+              )}
+                         </TabPanel>
+
+             {/* Assignments Tab */}
+             <TabPanel>
+               <Box>
+                 <Heading size="lg" color={studentPrimaryColor} mb={6}>
+                   My Assignments
+                 </Heading>
+
+                 {loading ? (
+                   <Text>Loading assignments...</Text>
+                 ) : assignments.length === 0 ? (
+                   <Alert status="info">
+                     <AlertIcon />
+                     <Box>
+                       <AlertTitle>No assignments yet!</AlertTitle>
+                       <AlertDescription>
+                         Assignments from your enrolled classes will appear here.
+                       </AlertDescription>
+                     </Box>
+                   </Alert>
+                 ) : (
+                   <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                     {assignments.map((assignment) => (
+                       <Card key={assignment.id} bg={studentCardBg} boxShadow="lg">
+                         <CardHeader>
+                           <Flex justify="space-between" align="center">
+                             <Box>
+                               <Heading size="md" color={studentPrimaryColor}>
+                                 {assignment.title}
+                               </Heading>
+                               <Text color={subtleTextColor} fontSize="sm">
+                                 {assignment.class_name} - {assignment.class_subject}
+                               </Text>
+                             </Box>
+                             <Badge
+                               colorScheme={
+                                 assignment.status === 'published' ? 'green' :
+                                 assignment.status === 'draft' ? 'yellow' : 'red'
+                               }
+                             >
+                               {assignment.status}
+                             </Badge>
+                           </Flex>
+                         </CardHeader>
+                         <CardBody>
+                           <Text color={textColor} mb={4}>
+                             {assignment.description || 'No description provided'}
+                           </Text>
+                           <VStack align="start" spacing={2} mb={4}>
+                             <HStack>
+                               <Icon as={FaCalendarAlt} color={studentIconColor} />
+                               <Text fontSize="sm" color={subtleTextColor}>
+                                 Due: {new Date(assignment.due_date).toLocaleDateString()}
+                               </Text>
+                             </HStack>
+                             <HStack>
+                               <Icon as={FaTrophy} color={studentIconColor} />
+                               <Text fontSize="sm" color={subtleTextColor}>
+                                 {assignment.total_points} points
+                               </Text>
+                             </HStack>
+                             <HStack>
+                               <Icon as={FaFileAlt} color={studentIconColor} />
+                               <Text fontSize="sm" color={subtleTextColor}>
+                                 {assignment.assignment_type}
+                               </Text>
+                             </HStack>
+                           </VStack>
+                           <Flex gap={2}>
+                             <Button size="sm" variant="outline" colorScheme="teal">
+                               View Details
+                             </Button>
+                             <Button size="sm" variant="outline" colorScheme="teal">
+                               Submit Work
+                             </Button>
+                           </Flex>
+                         </CardBody>
+                       </Card>
+                     ))}
+                   </SimpleGrid>
+                 )}
+               </Box>
+             </TabPanel>
+
+             {/* Available Classes Tab */}
+            <TabPanel>
+              <Box>
+                <Heading size="md" color={studentPrimaryColor} mb={4}>
+                  Available Classes
+                </Heading>
+                <Text color={subtleTextColor} mb={6}>
+                  Discover and join new classes
+                </Text>
+                
+                {availableClasses.length === 0 ? (
+                  <Alert status="info">
+                    <AlertIcon />
+                    <Box>
+                      <AlertTitle>No Available Classes</AlertTitle>
+                      <AlertDescription>
+                        All classes are currently full or you're already enrolled in them.
+                      </AlertDescription>
+                    </Box>
+                  </Alert>
+                ) : (
+                  <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                    {availableClasses.map((cls) => (
+                      <Card key={cls.id} bg={studentCardBg} boxShadow="lg">
+                        <CardHeader>
+                          <Flex justify="space-between" align="center">
+                            <Box>
+                              <Heading size="md" color={studentPrimaryColor}>
+                                {cls.name}
+                              </Heading>
+                              <Text color={subtleTextColor} fontSize="sm">
+                                {cls.subject}
+                              </Text>
+                            </Box>
+                            <Badge colorScheme="blue">
+                              {cls.students?.[0]?.count || 0}/{cls.max_students} students
+                            </Badge>
+                          </Flex>
+                        </CardHeader>
+                        <CardBody>
+                          <Text color={textColor} mb={4}>
+                            {cls.description || 'No description provided'}
+                          </Text>
+                          <VStack spacing={3} align="stretch">
+                            <Flex justify="space-between" align="center">
+                              <Text fontSize="sm" color={subtleTextColor}>Teacher:</Text>
+                              <Text fontSize="sm" color={textColor}>
+                                {cls.teacher?.full_name || 'Unknown'}
+                              </Text>
+                            </Flex>
+                            <Flex justify="space-between" align="center">
+                              <Text fontSize="sm" color={subtleTextColor}>Class Code:</Text>
+                              <Badge variant="outline" colorScheme="blue">
+                                {cls.class_code}
+                              </Badge>
+                            </Flex>
+                          </VStack>
+                          <Button
+                            size="sm"
+                            leftIcon={<Icon as={FaSignInAlt} />}
+                            colorScheme="teal"
+                            variant="outline"
+                            w="full"
+                            mt={4}
+                            onClick={() => {
+                              setClassCode(cls.class_code);
+                              setIsJoinClassOpen(true);
+                            }}
+                          >
+                            Join Class
+                          </Button>
+                        </CardBody>
+                      </Card>
                     ))}
-                    <Button size="sm" variant="outline" borderColor={studentPrimaryColor} color={studentPrimaryColor} _hover={{bg: useColorModeValue('teal.50', 'teal.800')}} w="full" mt={4}>
-                      View All Activities
-                    </Button>
-                  </VStack>
-                </CardBody>
-              </Card>
-            </VStack>
-          </GridItem>
-        </Grid>
+                  </SimpleGrid>
+                )}
+              </Box>
+            </TabPanel>
+
+            {/* Progress Tab */}
+            <TabPanel>
+              <Box>
+                <Heading size="md" color={studentPrimaryColor} mb={4}>
+                  Learning Progress
+                </Heading>
+                <Text color={subtleTextColor} mb={6}>
+                  Track your performance across all classes
+                </Text>
+                
+                <Alert status="info" mb={6}>
+                  <AlertIcon />
+                  <Box>
+                    <AlertTitle>Progress Tracking Coming Soon!</AlertTitle>
+                    <AlertDescription>
+                      Detailed progress tracking and analytics will be available in the next update.
+                    </AlertDescription>
+                  </Box>
+                </Alert>
+              </Box>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
+
+        {/* Join Class Modal */}
+        <Modal isOpen={isJoinClassOpen} onClose={() => setIsJoinClassOpen(false)}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Join a Class</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Stack spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel>Class Code</FormLabel>
+                  <InputGroup>
+                    <InputLeftElement>
+                      <Icon as={FaSearch} color={subtleTextColor} />
+                    </InputLeftElement>
+                    <Input
+                      value={classCode}
+                      onChange={(e) => setClassCode(e.target.value.toUpperCase())}
+                      placeholder="Enter class code (e.g., ABC12345)"
+                      maxLength={8}
+                    />
+                  </InputGroup>
+                </FormControl>
+                
+                <Alert status="info">
+                  <AlertIcon />
+                  <AlertDescription>
+                    Ask your teacher for the class code to join their class.
+                  </AlertDescription>
+                </Alert>
+              </Stack>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="ghost" mr={3} onClick={() => setIsJoinClassOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                colorScheme="teal" 
+                onClick={joinClassByCode}
+                isLoading={joiningClass}
+                isDisabled={!classCode.trim()}
+              >
+                Join Class
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </Container>
     </Box>
   );

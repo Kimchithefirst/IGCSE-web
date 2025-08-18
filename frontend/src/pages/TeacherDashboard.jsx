@@ -40,7 +40,23 @@ import {
   Td,
   Input,
   InputGroup,
-  InputLeftElement
+  InputLeftElement,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  FormControl,
+  FormLabel,
+  Textarea,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  useToast
 } from '@chakra-ui/react';
 import { 
   FaBook, 
@@ -62,164 +78,296 @@ import {
   FaPencilAlt,
   FaSearch,
   FaFileAlt,
-  FaPlus
+  FaPlus,
+  FaUsers,
+  FaEdit,
+  FaTrash,
+  FaEye
 } from 'react-icons/fa';
 import { useSupabaseAuth as useAuth } from '../context/SupabaseAuthContext';
+import { supabase } from '../lib/supabase';
 
 const TeacherDashboard = () => {
-  // Mock data - would come from API in a real application
-  const [selectedCourse, setSelectedCourse] = useState('math');
+  const { user: authUser } = useAuth();
+  const toast = useToast();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isCreateClassOpen, setIsCreateClassOpen] = useState(false);
+  const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [classes, setClasses] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Form states
+  const [newClass, setNewClass] = useState({
+    name: '',
+    subject: '',
+    description: '',
+    maxStudents: 30
+  });
+  const [newStudent, setNewStudent] = useState({
+    email: '',
+    fullName: '',
+    role: 'student'
+  });
+  
+  const [isCreateAssignmentOpen, setIsCreateAssignmentOpen] = useState(false);
+  const [newAssignment, setNewAssignment] = useState({
+    title: '',
+    description: '',
+    classId: '',
+    dueDate: '',
+    totalPoints: 100,
+    assignmentType: 'quiz',
+    instructions: ''
+  });
   
   // Theme-based colors
-  const pageBg = useColorModeValue('secondary.100', 'secondary.900'); // General page background
-  // Teacher role-specific colors from theme
+  const pageBg = useColorModeValue('secondary.100', 'secondary.900');
   const teacherCardBg = useColorModeValue('teacher.cardBg.default', 'teacher.cardBg._dark');
   const teacherPrimaryColor = useColorModeValue('teacher.primary.default', 'teacher.primary._dark');
   const teacherSecondaryColor = useColorModeValue('teacher.secondary.default', 'teacher.secondary._dark');
-
-  const generalHeadingColor = useColorModeValue('brand.800', 'brand.200'); // For main page title
-  const textColor = useColorModeValue('gray.700', 'gray.500'); // Default text
+  const generalHeadingColor = useColorModeValue('brand.800', 'brand.200');
+  const textColor = useColorModeValue('gray.700', 'gray.500');
   const subtleTextColor = useColorModeValue('gray.500', 'gray.400');
-  // Icon container for stat cards will use shades of teacher primary
-  const teacherIconContainerBg = useColorModeValue('purple.50', 'purple.800'); // Assuming teacher.primary is purple-based
+  const teacherIconContainerBg = useColorModeValue('purple.50', 'purple.800');
   const teacherIconColor = teacherPrimaryColor;
-
-  const subtleBg = useColorModeValue('gray.50', 'gray.700'); // Keep for some neutral internal items if needed
+  const subtleBg = useColorModeValue('gray.50', 'gray.700');
   const subtleBorderColor = useColorModeValue('gray.200', 'gray.600');
   const inputBg = useColorModeValue('white', 'secondary.700');
-  const { user: authUser } = useAuth();
+
+  // Load teacher data on component mount
+  useEffect(() => {
+    if (authUser) {
+      loadTeacherData();
+    }
+  }, [authUser]);
+
+  const loadTeacherData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load teacher's classes
+      const { data: classesData, error: classesError } = await supabase
+        .from('classes')
+        .select('*')
+        .eq('teacher_id', authUser.id);
+
+      if (classesError) {
+        console.error('Error loading classes:', classesError);
+      } else {
+        setClasses(classesData || []);
+      }
+
+      // Load all students (for adding to classes)
+      const { data: studentsData, error: studentsError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'student');
+
+      if (studentsError) {
+        console.error('Error loading students:', studentsError);
+      } else {
+        setStudents(studentsData || []);
+      }
+
+      // Load assignments for teacher's classes
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from('assignments')
+        .select(`
+          *,
+          class:classes(name)
+        `)
+        .eq('created_by', authUser.id);
+
+      if (assignmentsError) {
+        console.error('Error loading assignments:', assignmentsError);
+      } else {
+        // Add class_name to each assignment for display
+        const assignmentsWithClassNames = assignmentsData?.map(assignment => ({
+          ...assignment,
+          class_name: assignment.class?.name || 'Unknown Class'
+        })) || [];
+        setAssignments(assignmentsWithClassNames);
+      }
+    } catch (error) {
+      console.error('Error loading teacher data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createClass = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('classes')
+        .insert({
+          name: newClass.name,
+          subject: newClass.subject,
+          description: newClass.description,
+          max_students: newClass.maxStudents,
+          teacher_id: authUser.id
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: 'Class Created Successfully!',
+        description: `${newClass.name} has been created with class code: ${data.class_code}`,
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+
+      setNewClass({ name: '', subject: '', description: '', maxStudents: 30 });
+      setIsCreateClassOpen(false);
+      loadTeacherData(); // Reload data
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const createAssignment = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('assignments')
+        .insert({
+          title: newAssignment.title,
+          description: newAssignment.description,
+          class_id: newAssignment.classId,
+          created_by: authUser.id,
+          due_date: newAssignment.dueDate,
+          total_points: newAssignment.totalPoints,
+          assignment_type: newAssignment.assignmentType,
+          instructions: newAssignment.instructions,
+          status: 'draft'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: 'Assignment Created Successfully!',
+        description: `${newAssignment.title} has been created.`,
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+
+      setNewAssignment({ 
+        title: '', 
+        description: '', 
+        classId: '', 
+        dueDate: '', 
+        totalPoints: 100, 
+        assignmentType: 'quiz',
+        instructions: ''
+      });
+      setIsCreateAssignmentOpen(false);
+      loadTeacherData(); // Reload data
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const addStudentToClass = async () => {
+    try {
+      // First, find the student by email
+      const { data: studentData, error: studentError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', newStudent.email)
+        .eq('role', 'student')
+        .single();
+
+      if (studentError || !studentData) {
+        throw new Error('Student not found. Please check the email address.');
+      }
+
+      // Add student to class
+      const { error: classStudentError } = await supabase
+        .from('class_students')
+        .insert({
+          class_id: selectedClass.id,
+          student_id: studentData.id
+        });
+
+      if (classStudentError) {
+        throw classStudentError;
+      }
+
+      toast({
+        title: 'Student Added',
+        description: `${newStudent.fullName} has been added to ${selectedClass.name}`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      setNewStudent({ email: '', fullName: '', role: 'student' });
+      setIsAddStudentOpen(false);
+      loadTeacherData(); // Reload data
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const copyClassCode = async (classCode) => {
+    try {
+      await navigator.clipboard.writeText(classCode);
+      toast({
+        title: 'Class Code Copied!',
+        description: 'The class code has been copied to your clipboard',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: 'Copy Failed',
+        description: 'Please copy the code manually: ' + classCode,
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
 
   const teacherData = {
-    name: 'Dr. Sarah Williams', // This could come from authUser if available
-    role: 'Mathematics Teacher',
+    name: authUser?.name || 'Teacher',
+    role: 'Teacher',
     avatar: '',
-    courses: 3,
-    totalStudents: 87,
+    courses: classes.length,
+    totalStudents: classes.reduce((total, cls) => total + (cls.students?.length || 0), 0),
     upcomingClasses: 2,
     pendingGrading: 15,
     notifications: 4
-  };
-  
-  // Mock courses taught by this teacher
-  const courses = {
-    math: {
-      id: 'math',
-      title: 'Mathematics (0580)',
-      grade: '10th Grade',
-      students: 32,
-      avgPerformance: 76,
-      lastClass: 'Monday, 10:00',
-      nextClass: 'Wednesday, 10:00',
-      pendingAssignments: 8,
-      units: [
-        { id: 1, title: 'Algebra II', completion: 85 },
-        { id: 2, title: 'Geometry', completion: 60 },
-        { id: 3, title: 'Calculus Basics', completion: 40 },
-        { id: 4, title: 'Statistics', completion: 0 }
-      ]
-    },
-    physics: {
-      id: 'physics',
-      title: 'Physics (0625)',
-      grade: '11th Grade',
-      students: 28,
-      avgPerformance: 72,
-      lastClass: 'Tuesday, 14:00',
-      nextClass: 'Thursday, 14:00',
-      pendingAssignments: 5,
-      units: [
-        { id: 1, title: 'Mechanics', completion: 90 },
-        { id: 2, title: 'Electricity', completion: 75 },
-        { id: 3, title: 'Waves', completion: 50 },
-        { id: 4, title: 'Nuclear Physics', completion: 10 }
-      ]
-    },
-    chemistry: {
-      id: 'chemistry',
-      title: 'Chemistry (0620)',
-      grade: '9th Grade',
-      students: 27,
-      avgPerformance: 81,
-      lastClass: 'Monday, 13:00',
-      nextClass: 'Friday, 11:00',
-      pendingAssignments: 2,
-      units: [
-        { id: 1, title: 'Periodic Table', completion: 100 },
-        { id: 2, title: 'Chemical Bonding', completion: 80 },
-        { id: 3, title: 'Organic Chemistry', completion: 30 },
-        { id: 4, title: 'Analytical Chemistry', completion: 0 }
-      ]
-    }
-  };
-
-  const selectedCourseData = courses[selectedCourse];
-
-  // Mock upcoming schedule
-  const upcomingSchedule = [
-    { id: 1, title: 'Mathematics (10th Grade)', type: 'Class', date: 'Wednesday, 15 May', time: '10:00 - 11:30', location: 'Room 203' },
-    { id: 2, title: 'Physics (11th Grade)', type: 'Lab Session', date: 'Thursday, 16 May', time: '14:00 - 15:30', location: 'Physics Lab' },
-    { id: 3, title: 'Chemistry (9th Grade)', type: 'Class', date: 'Friday, 17 May', time: '11:00 - 12:30', location: 'Room 105' },
-    { id: 4, title: 'Faculty Meeting', type: 'Meeting', date: 'Friday, 17 May', time: '16:00 - 17:00', location: 'Conference Room' }
-  ];
-
-  // Mock student data for the selected course
-  const studentPerformance = {
-    math: [
-      { id: 1, name: 'Alex Johnson', attendance: 95, overallGrade: 'A-', lastAssignment: 88, participation: 'High' },
-      { id: 2, name: 'Emma Wilson', attendance: 92, overallGrade: 'B+', lastAssignment: 85, participation: 'Medium' },
-      { id: 3, name: 'James Miller', attendance: 88, overallGrade: 'B', lastAssignment: 78, participation: 'High' },
-      { id: 4, name: 'Sophia Brown', attendance: 98, overallGrade: 'A', lastAssignment: 95, participation: 'High' },
-      { id: 5, name: 'Daniel Taylor', attendance: 85, overallGrade: 'C+', lastAssignment: 72, participation: 'Low' }
-    ],
-    physics: [
-      { id: 1, name: 'Oliver Davis', attendance: 90, overallGrade: 'B+', lastAssignment: 84, participation: 'Medium' },
-      { id: 2, name: 'Ava Moore', attendance: 95, overallGrade: 'A', lastAssignment: 92, participation: 'High' },
-      { id: 3, name: 'Ethan Anderson', attendance: 82, overallGrade: 'B-', lastAssignment: 76, participation: 'Medium' },
-      { id: 4, name: 'Isabella Thomas', attendance: 78, overallGrade: 'C+', lastAssignment: 69, participation: 'Low' },
-      { id: 5, name: 'Lucas Jackson', attendance: 93, overallGrade: 'A-', lastAssignment: 88, participation: 'High' }
-    ],
-    chemistry: [
-      { id: 1, name: 'Mia Martinez', attendance: 97, overallGrade: 'A', lastAssignment: 94, participation: 'High' },
-      { id: 2, name: 'Noah Harris', attendance: 91, overallGrade: 'B+', lastAssignment: 86, participation: 'Medium' },
-      { id: 3, name: 'Charlotte Clark', attendance: 89, overallGrade: 'B', lastAssignment: 82, participation: 'Medium' },
-      { id: 4, name: 'Liam Lewis', attendance: 83, overallGrade: 'C+', lastAssignment: 75, participation: 'Low' },
-      { id: 5, name: 'Amelia Young', attendance: 94, overallGrade: 'A-', lastAssignment: 89, participation: 'High' }
-    ]
-  }[selectedCourse];
-
-  // Mock pending assignments
-  const pendingAssignments = {
-    math: [
-      { id: 1, title: 'Quadratic Equations Quiz', type: 'Quiz', dueDate: '12 May 2024', submittedCount: 28, totalCount: 32 },
-      { id: 2, title: 'Vectors and Matrices', type: 'Homework', dueDate: '14 May 2024', submittedCount: 25, totalCount: 32 },
-      { id: 3, title: 'Mid-Term Test', type: 'Exam', dueDate: '20 May 2024', submittedCount: 0, totalCount: 32 }
-    ],
-    physics: [
-      { id: 1, title: 'Newton\'s Laws Lab Report', type: 'Lab', dueDate: '15 May 2024', submittedCount: 22, totalCount: 28 },
-      { id: 2, title: 'Circuit Diagrams', type: 'Homework', dueDate: '18 May 2024', submittedCount: 19, totalCount: 28 }
-    ],
-    chemistry: [
-      { id: 1, title: 'Periodic Table Quiz', type: 'Quiz', dueDate: '14 May 2024', submittedCount: 25, totalCount: 27 },
-      { id: 2, title: 'Chemical Reactions Lab', type: 'Lab', dueDate: '19 May 2024', submittedCount: 0, totalCount: 27 }
-    ]
-  }[selectedCourse];
-
-  // Get participation color
-  const getParticipationColor = (participation) => {
-    switch(participation) {
-      case 'High': return 'green';
-      case 'Medium': return 'blue';
-      case 'Low': return 'orange';
-      default: return 'gray';
-    }
-  };
-
-  // Get grade color
-  const getGradeColor = (grade) => {
-    if (grade.startsWith('A')) return 'green';
-    if (grade.startsWith('B')) return 'blue';
-    if (grade.startsWith('C')) return 'yellow';
-    return 'red';
   };
 
   return (
@@ -228,501 +376,571 @@ const TeacherDashboard = () => {
         {/* Header Section */}
         <Flex justify="space-between" align="center" mb={{ base: 6, md: 8 }}>
           <Box>
-            <Heading as="h1" size="xl" mb={1} color={generalHeadingColor}>
-              Teacher Dashboard
+            <Heading size="lg" color={generalHeadingColor} mb={2}>
+              Welcome back, {teacherData.name}!
             </Heading>
-            <Text color={textColor}>
-              Welcome, {authUser?.name || teacherData.name}! Manage your courses and students.
+            <Text color={subtleTextColor}>
+              Here's what's happening with your classes today
             </Text>
           </Box>
-          <Flex align="center">
-            <Box mr={4} position="relative" cursor="pointer" _hover={{ color: teacherPrimaryColor }}>
-              <Icon as={FaRegBell} boxSize={6} color={subtleTextColor} />
-              {teacherData.notifications > 0 && (
-                <Box 
-                  position="absolute" 
-                  top="-5px" 
-                  right="-5px" 
-                  bg="red.500" 
-                  borderRadius="full" 
-                  w="18px" 
-                  h="18px" 
-                  display="flex" 
-                  alignItems="center" 
-                  justifyContent="center"
-                  boxShadow="sm"
-                >
-                  <Text fontSize="xs" fontWeight="bold" color="white">{teacherData.notifications}</Text>
-                </Box>
-              )}
-            </Box>
-            <Avatar name={authUser?.name || teacherData.name} size="md" bg={teacherPrimaryColor} color="white">
-              <AvatarBadge boxSize='1.25em' bg='green.500' borderColor={teacherCardBg} />
-            </Avatar>
-          </Flex>
+          <Button
+            leftIcon={<Icon as={FaPlus} />}
+            colorScheme="purple"
+            onClick={() => setIsCreateClassOpen(true)}
+          >
+            Create New Class
+          </Button>
         </Flex>
 
-        {/* Stats Overview */}
-        <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={{ base: 4, md: 6 }} mb={{ base: 6, md: 8 }}>
-          <Card bg={teacherCardBg} boxShadow="lg" borderRadius="xl" transition="all 0.2s ease-in-out" _hover={{ transform: 'translateY(-4px)', boxShadow: 'xl' }}>
+        {/* Stats Cards */}
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={8}>
+          <Card bg={teacherCardBg} boxShadow="lg">
             <CardBody>
               <Stat>
-                <Flex align="center">
-                  <Box bg={teacherIconContainerBg} p={3} borderRadius="lg" mr={4}>
-                    <Icon as={FaBook} boxSize={6} color={teacherIconColor} />
-                  </Box>
-                  <Box>
-                    <StatLabel color={subtleTextColor} fontWeight="medium">Courses</StatLabel>
-                    <StatNumber color={teacherPrimaryColor} fontWeight="bold">{teacherData.courses}</StatNumber>
-                  </Box>
-                </Flex>
+                <StatLabel color={subtleTextColor}>Total Classes</StatLabel>
+                <StatNumber color={teacherPrimaryColor}>{teacherData.courses}</StatNumber>
+                <StatHelpText color={subtleTextColor}>
+                  <Icon as={FaBook} mr={2} />
+                  Active courses
+                </StatHelpText>
               </Stat>
             </CardBody>
           </Card>
 
-          <Card bg={teacherCardBg} boxShadow="lg" borderRadius="xl" transition="all 0.2s ease-in-out" _hover={{ transform: 'translateY(-4px)', boxShadow: 'xl' }}>
+          <Card bg={teacherCardBg} boxShadow="lg">
             <CardBody>
               <Stat>
-                <Flex align="center">
-                  <Box bg={useColorModeValue('gray.100', 'gray.700')} p={3} borderRadius="lg" mr={4}> {/* Teacher Secondary */}
-                    <Icon as={FaUserGraduate} boxSize={6} color={teacherSecondaryColor} />
-                  </Box>
-                  <Box>
-                    <StatLabel color={subtleTextColor} fontWeight="medium">Students</StatLabel>
-                    <StatNumber color={teacherPrimaryColor} fontWeight="bold">{teacherData.totalStudents}</StatNumber>
-                  </Box>
-                </Flex>
+                <StatLabel color={subtleTextColor}>Total Students</StatLabel>
+                <StatNumber color={teacherPrimaryColor}>{teacherData.totalStudents}</StatNumber>
+                <StatHelpText color={subtleTextColor}>
+                  <Icon as={FaUserGraduate} mr={2} />
+                  Enrolled students
+                </StatHelpText>
               </Stat>
             </CardBody>
           </Card>
 
-          <Card bg={teacherCardBg} boxShadow="lg" borderRadius="xl" transition="all 0.2s ease-in-out" _hover={{ transform: 'translateY(-4px)', boxShadow: 'xl' }}>
+          <Card bg={teacherCardBg} boxShadow="lg">
             <CardBody>
               <Stat>
-                <Flex align="center">
-                  <Box bg={teacherIconContainerBg} p={3} borderRadius="lg" mr={4}>
-                    <Icon as={FaCalendarAlt} boxSize={6} color={teacherIconColor} />
-                  </Box>
-                  <Box>
-                    <StatLabel color={subtleTextColor} fontWeight="medium">Upcoming Classes</StatLabel>
-                    <StatNumber color={teacherPrimaryColor} fontWeight="bold">{teacherData.upcomingClasses}</StatNumber>
-                  </Box>
-                </Flex>
+                <StatLabel color={subtleTextColor}>Upcoming Classes</StatLabel>
+                <StatNumber color={teacherPrimaryColor}>{teacherData.upcomingClasses}</StatNumber>
+                <StatHelpText color={subtleTextColor}>
+                  <Icon as={FaCalendarAlt} mr={2} />
+                  Today's schedule
+                </StatHelpText>
               </Stat>
             </CardBody>
           </Card>
 
-          <Card bg={teacherCardBg} boxShadow="lg" borderRadius="xl" transition="all 0.2s ease-in-out" _hover={{ transform: 'translateY(-4px)', boxShadow: 'xl' }}>
+          <Card bg={teacherCardBg} boxShadow="lg">
             <CardBody>
               <Stat>
-                <Flex align="center">
-                  <Box bg={useColorModeValue('gray.100', 'gray.700')} p={3} borderRadius="lg" mr={4}> {/* Teacher Secondary */}
-                    <Icon as={FaClipboardList} boxSize={6} color={teacherSecondaryColor} />
-                  </Box>
-                  <Box>
-                    <StatLabel color={subtleTextColor} fontWeight="medium">Pending Grading</StatLabel>
-                    <StatNumber color={teacherPrimaryColor} fontWeight="bold">{teacherData.pendingGrading}</StatNumber>
-                  </Box>
-                </Flex>
+                <StatLabel color={subtleTextColor}>Pending Grading</StatLabel>
+                <StatNumber color={teacherPrimaryColor}>{teacherData.pendingGrading}</StatNumber>
+                <StatHelpText color={subtleTextColor}>
+                  <Icon as={FaTasks} mr={2} />
+                  Assignments to grade
+                </StatHelpText>
               </Stat>
             </CardBody>
           </Card>
         </SimpleGrid>
 
-        {/* Course Selector */}
-        <Card mb={{ base: 6, md: 8 }} bg={teacherCardBg} boxShadow="lg" borderRadius="xl">
-          <CardBody p={{ base: 4, md: 6 }}>
-            <Flex 
-              direction={{ base: 'column', md: 'row' }} 
-              justify="space-between" 
-              align={{ base: 'stretch', md: 'center' }}
-              gap={4}
-            >
-              <HStack spacing={3}>
-                <Icon as={FaChalkboardTeacher} boxSize={6} color={teacherPrimaryColor} />
-                <Text fontWeight="semibold" color={textColor} whiteSpace="nowrap">Managing Course:</Text>
-              </HStack>
-              <Select 
-                value={selectedCourse} 
-                onChange={(e) => setSelectedCourse(e.target.value)}
-                maxW={{ base: 'full', md: '350px' }}
-                size="lg"
-                bg={inputBg}
-                borderColor={subtleBorderColor}
-                borderRadius="md"
-                focusBorderColor={teacherPrimaryColor}
-              >
-                {Object.values(courses).map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.title} ({course.grade})
-                  </option>
-                ))}
-              </Select>
-              <HStack spacing={3} wrap="wrap" justify={{base: "center", md: "flex-end"}}>
-                <Badge colorScheme="purple" variant="subtle" px={3} py={1}>{selectedCourseData.students} Students</Badge>
-                <Badge colorScheme="green" variant="subtle" px={3} py={1}>Avg. Performance: {selectedCourseData.avgPerformance}%</Badge>
-                <Badge colorScheme="orange" variant="subtle" px={3} py={1}>{selectedCourseData.pendingAssignments} Pending Assignments</Badge>
-              </HStack>
-            </Flex>
-          </CardBody>
-        </Card>
-
-        {/* Main Content Grid */}
-        <Grid
-          templateColumns={{ base: "1fr", lg: "2.5fr 1.5fr" }}
-          gap={{ base: 6, md: 8 }}
-        >
-          {/* Left Column - Students & Assignments */}
-          <GridItem>
-            <Tabs colorScheme="purple" variant="soft-rounded" mb={{ base: 6, md: 8 }}> {/* teacher.primary colorScheme */}
+        {/* Main Content */}
+        <Tabs variant="enclosed" colorScheme="purple">
               <TabList>
-                <Tab fontWeight="semibold">Students</Tab>
-                <Tab fontWeight="semibold">Assignments</Tab>
-                <Tab fontWeight="semibold">Course Content</Tab>
+            <Tab>My Classes</Tab>
+            <Tab>Assignments</Tab>
+            <Tab>Student Management</Tab>
+            <Tab>Analytics</Tab>
               </TabList>
               
               <TabPanels>
-                {/* Students Tab */}
-                <TabPanel px={0} pt={4}>
-                  <Card bg={teacherCardBg} boxShadow="lg" borderRadius="xl">
+            {/* My Classes Tab */}
+            <TabPanel>
+              {loading ? (
+                <Box textAlign="center" py={10}>
+                  <Text>Loading classes...</Text>
+                </Box>
+              ) : classes.length === 0 ? (
+                <Box textAlign="center" py={10}>
+                  <Icon as={FaBook} size="3xl" color={subtleTextColor} mb={4} />
+                  <Text fontSize="lg" color={textColor} mb={2}>
+                    No classes created yet
+                  </Text>
+                  <Text color={subtleTextColor} mb={4}>
+                    Create your first class to get started
+                  </Text>
+                  <Button
+                    leftIcon={<Icon as={FaPlus} />}
+                    colorScheme="purple"
+                    onClick={() => setIsCreateClassOpen(true)}
+                  >
+                    Create Your First Class
+                  </Button>
+                </Box>
+              ) : (
+                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                  {classes.map((cls) => (
+                    <Card key={cls.id} bg={teacherCardBg} boxShadow="lg">
                     <CardHeader>
-                      <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
-                        <HStack spacing={3}>
-                          <Icon as={FaUserGraduate} color={teacherPrimaryColor} boxSize={6} />
-                          <Heading size="lg" color={generalHeadingColor}>Students</Heading>
-                        </HStack>
-                        <InputGroup maxW={{ base: "full", sm: "250px" }}>
-                          <InputLeftElement pointerEvents="none">
-                            <Icon as={FaSearch} color={subtleTextColor} />
-                          </InputLeftElement>
-                          <Input placeholder="Search students..." bg={inputBg} borderRadius="md" borderColor={subtleBorderColor} focusBorderColor={teacherPrimaryColor}/>
-                        </InputGroup>
+                        <Flex justify="space-between" align="center">
+                          <Box>
+                            <Heading size="md" color={teacherPrimaryColor}>
+                              {cls.name}
+                            </Heading>
+                            <Text color={subtleTextColor} fontSize="sm">
+                              {cls.subject}
+                            </Text>
+                          </Box>
+                          <VStack spacing={1} align="end">
+                            <Badge colorScheme="purple">
+                              {cls.students?.length || 0}/{cls.max_students} students
+                            </Badge>
+                            <Badge variant="outline" colorScheme="green" fontSize="xs">
+                              Code: {cls.class_code}
+                            </Badge>
+                          </VStack>
                       </Flex>
                     </CardHeader>
                     <CardBody>
-                      <Box overflowX="auto">
-                        <Table variant="simple" size="md">
-                          <Thead>
-                            <Tr>
-                              <Th color={subtleTextColor}>Student</Th>
-                              <Th color={subtleTextColor}>Attendance</Th>
-                              <Th color={subtleTextColor}>Grade</Th>
-                              <Th color={subtleTextColor}>Last Assignment</Th>
-                              <Th color={subtleTextColor}>Participation</Th>
-                              <Th color={subtleTextColor}>Actions</Th>
-                            </Tr>
-                          </Thead>
-                          <Tbody>
-                            {studentPerformance.map(student => (
-                              <Tr key={student.id} _hover={{ bg: useColorModeValue('gray.50', 'gray.700') }}>
-                                <Td fontWeight="medium" color={textColor}>{student.name}</Td>
-                                <Td color={textColor}>
-                                  <Flex align="center">
-                                    <Text mr={2}>{student.attendance}%</Text>
-                                    <Badge variant="subtle" colorScheme={student.attendance >= 90 ? 'green' : student.attendance >= 80 ? 'yellow' : 'red'}>
-                                      {student.attendance >= 90 ? 'Excellent' : student.attendance >= 80 ? 'Good' : 'Poor'}
-                                    </Badge>
-                                  </Flex>
-                                </Td>
-                                <Td>
-                                  <Badge variant="subtle" colorScheme={getGradeColor(student.overallGrade)} px={2} py={0.5} borderRadius="md">
-                                    {student.overallGrade}
-                                  </Badge>
-                                </Td>
-                                <Td color={textColor}>{student.lastAssignment}/100</Td>
-                                <Td>
-                                  <Badge variant="subtle" colorScheme={getParticipationColor(student.participation)} px={2} py={0.5} borderRadius="md">
-                                    {student.participation}
-                                  </Badge>
-                                </Td>
-                                <Td>
-                                  <Button size="xs" colorScheme="purple" variant="outline">Details</Button>
-                                </Td>
-                              </Tr>
-                            ))}
-                          </Tbody>
-                        </Table>
-                      </Box>
-                      <Flex justify="space-between" mt={4} wrap="wrap" gap={2}>
-                        <Button size="sm" colorScheme="purple" variant="outline" leftIcon={<Icon as={FaFileAlt} />}>
-                          Export Report
+                        <Text color={textColor} mb={4}>
+                          {cls.description || 'No description provided'}
+                        </Text>
+                        <Flex gap={2}>
+                          <Button
+                            size="sm"
+                            leftIcon={<Icon as={FaUsers} />}
+                            variant="outline"
+                            colorScheme="purple"
+                            onClick={() => {
+                              setSelectedClass(cls);
+                              setIsAddStudentOpen(true);
+                            }}
+                          >
+                            Add Student
+                          </Button>
+                          <Button
+                            size="sm"
+                            leftIcon={<Icon as={FaEye} />}
+                            variant="ghost"
+                            colorScheme="purple"
+                          >
+                            View Details
                         </Button>
-                        <Button size="sm" bg={teacherPrimaryColor} color="white" _hover={{bg: useColorModeValue('purple.500', 'purple.200')}} leftIcon={<Icon as={FaEnvelope} />}>
-                          Contact Parents
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            colorScheme="green"
+                            onClick={() => copyClassCode(cls.class_code)}
+                            title="Copy class code"
+                          >
+                            Copy Code
                         </Button>
                       </Flex>
                     </CardBody>
                   </Card>
+                  ))}
+                </SimpleGrid>
+              )}
                 </TabPanel>
                 
                 {/* Assignments Tab */}
-                <TabPanel px={0} pt={4}>
-                  <Card bg={teacherCardBg} boxShadow="lg" borderRadius="xl">
+             <TabPanel>
+               <Box>
+                 <Flex justify="space-between" align="center" mb={6}>
+                   <Heading size="lg" color={teacherPrimaryColor}>
+                     Assignments
+                   </Heading>
+                   <Button
+                     leftIcon={<Icon as={FaPlus} />}
+                     colorScheme="purple"
+                     onClick={() => setIsCreateAssignmentOpen(true)}
+                   >
+                     Create Assignment
+                   </Button>
+                 </Flex>
+
+                 {loading ? (
+                   <Text>Loading assignments...</Text>
+                 ) : assignments.length === 0 ? (
+                   <Alert status="info">
+                     <AlertIcon />
+                     <Box>
+                       <AlertTitle>No assignments yet!</AlertTitle>
+                       <AlertDescription>
+                         Create your first assignment to get started.
+                       </AlertDescription>
+                     </Box>
+                   </Alert>
+                 ) : (
+                   <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                     {assignments.map((assignment) => (
+                       <Card key={assignment.id} bg={teacherCardBg} boxShadow="lg">
                     <CardHeader>
-                      <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
-                        <HStack spacing={3}>
-                          <Icon as={FaClipboardList} color={teacherSecondaryColor} boxSize={6} /> {/* Teacher secondary */}
-                          <Heading size="lg" color={generalHeadingColor}>Assignments</Heading>
+                           <Flex justify="space-between" align="center">
+                             <Box>
+                               <Heading size="md" color={teacherPrimaryColor}>
+                                 {assignment.title}
+                               </Heading>
+                               <Text color={subtleTextColor} fontSize="sm">
+                                 {assignment.class_name}
+                               </Text>
+                             </Box>
+                             <Badge
+                               colorScheme={
+                                 assignment.status === 'published' ? 'green' :
+                                 assignment.status === 'draft' ? 'yellow' : 'red'
+                               }
+                             >
+                               {assignment.status}
+                             </Badge>
+                           </Flex>
+                         </CardHeader>
+                         <CardBody>
+                           <Text color={textColor} mb={4}>
+                             {assignment.description || 'No description provided'}
+                           </Text>
+                           <VStack align="start" spacing={2} mb={4}>
+                             <HStack>
+                               <Icon as={FaCalendarAlt} color={teacherIconColor} />
+                               <Text fontSize="sm" color={subtleTextColor}>
+                                 Due: {new Date(assignment.due_date).toLocaleDateString()}
+                               </Text>
+                             </HStack>
+                             <HStack>
+                               <Icon as={FaTrophy} color={teacherIconColor} />
+                               <Text fontSize="sm" color={subtleTextColor}>
+                                 {assignment.total_points} points
+                               </Text>
+                             </HStack>
+                             <HStack>
+                               <Icon as={FaFileAlt} color={teacherIconColor} />
+                               <Text fontSize="sm" color={subtleTextColor}>
+                                 {assignment.assignment_type}
+                               </Text>
                         </HStack>
-                        <Button bg={teacherPrimaryColor} color="white" _hover={{bg: useColorModeValue('purple.500', 'purple.200')}} size="sm" leftIcon={<Icon as={FaPlus} />}>
-                          New Assignment
+                           </VStack>
+                           <Flex gap={2}>
+                             <Button size="sm" variant="outline" colorScheme="purple">
+                               View Submissions
+                             </Button>
+                             <Button size="sm" variant="outline" colorScheme="purple">
+                               Edit
                         </Button>
                       </Flex>
+                         </CardBody>
+                       </Card>
+                     ))}
+                   </SimpleGrid>
+                 )}
+               </Box>
+             </TabPanel>
+
+             {/* Student Management Tab */}
+            <TabPanel>
+              <Box>
+                <Heading size="md" color={teacherPrimaryColor} mb={4}>
+                  Student Management
+                </Heading>
+                <Text color={subtleTextColor} mb={6}>
+                  Manage students across all your classes
+                </Text>
+                
+                <Card bg={teacherCardBg} boxShadow="lg">
+                  <CardHeader>
+                    <Heading size="sm" color={teacherPrimaryColor}>
+                      All Students ({students.length})
+                    </Heading>
                     </CardHeader>
                     <CardBody>
-                      <Box overflowX="auto">
-                        <Table variant="simple" size="md">
+                    <Table variant="simple">
                           <Thead>
                             <Tr>
-                              <Th color={subtleTextColor}>Assignment</Th>
-                              <Th color={subtleTextColor}>Type</Th>
-                              <Th color={subtleTextColor}>Due Date</Th>
-                              <Th color={subtleTextColor}>Submissions</Th>
-                              <Th color={subtleTextColor}>Actions</Th>
+                          <Th>Name</Th>
+                          <Th>Email</Th>
+                          <Th>Classes</Th>
+                          <Th>Actions</Th>
                             </Tr>
                           </Thead>
                           <Tbody>
-                            {pendingAssignments.map(assignment => (
-                              <Tr key={assignment.id} _hover={{ bg: useColorModeValue('gray.50', 'gray.700') }}>
-                                <Td fontWeight="medium" color={textColor}>{assignment.title}</Td>
-                                <Td>
-                                  <Badge
-                                    variant="subtle"
-                                    colorScheme={
-                                      assignment.type === 'Exam' ? 'pink' :
-                                      assignment.type === 'Quiz' ? 'purple' :
-                                      assignment.type === 'Lab' ? 'green' : 'gray'
-                                    }
-                                    px={2} py={0.5} borderRadius="md"
-                                  >
-                                    {assignment.type}
-                                  </Badge>
-                                </Td>
-                                <Td color={textColor}>{assignment.dueDate}</Td>
+                        {students.map((student) => (
+                          <Tr key={student.id}>
                                 <Td>
                                   <Flex align="center">
-                                    <Progress
-                                      value={(assignment.submittedCount / assignment.totalCount) * 100}
-                                      size="sm"
-                                      colorScheme="purple"
-                                      borderRadius="full"
-                                      w={{ base: "80px", md: "100px" }}
-                                      mr={2}
-                                      bg={useColorModeValue('purple.100', 'purple.700')}
-                                    />
-                                    <Text fontSize="sm" color={textColor}>
-                                      {assignment.submittedCount}/{assignment.totalCount}
-                                    </Text>
+                                <Avatar size="sm" name={student.full_name} mr={3} />
+                                {student.full_name}
                                   </Flex>
                                 </Td>
-                                <Td>
-                                  <HStack spacing={2}>
-                                    <Button size="xs" colorScheme="orange" leftIcon={<Icon as={FaPencilAlt} boxSize={3} />}>
-                                      Grade
+                            <Td>{student.email}</Td>
+                            <Td>
+                              <Badge colorScheme="blue">
+                                {classes.filter(cls => 
+                                  cls.students?.some(s => s.student?.id === student.id)
+                                ).length} classes
+                              </Badge>
+                            </Td>
+                            <Td>
+                              <Button size="sm" variant="ghost" colorScheme="purple">
+                                <Icon as={FaEye} />
                                     </Button>
-                                    <Button size="xs" colorScheme="purple" variant="outline">
-                                      Details
-                                    </Button>
-                                  </HStack>
                                 </Td>
                               </Tr>
                             ))}
                           </Tbody>
                         </Table>
-                      </Box>
-                      <Divider my={4} borderColor={subtleBorderColor} />
-                      <Heading size="md" mb={3} color={generalHeadingColor}>Past Assignments</Heading>
-                      <Button size="sm" colorScheme="purple" variant="outline" w="full">
-                        View All Past Assignments
-                      </Button>
                     </CardBody>
                   </Card>
+              </Box>
                 </TabPanel>
+
+            {/* Analytics Tab */}
+            <TabPanel>
+              <Box>
+                <Heading size="md" color={teacherPrimaryColor} mb={4}>
+                  Class Analytics
+                </Heading>
+                <Text color={subtleTextColor} mb={6}>
+                  Performance insights and trends
+                </Text>
                 
-                {/* Course Content Tab */}
-                <TabPanel px={0} pt={4}>
-                  <Card bg={teacherCardBg} boxShadow="lg" borderRadius="xl">
-                    <CardHeader>
-                      <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
-                        <HStack spacing={3}>
-                          <Icon as={FaBook} color={teacherPrimaryColor} boxSize={6} />
-                          <Heading size="lg" color={generalHeadingColor}>Course Material</Heading>
-                        </HStack>
-                        <Button bg={teacherPrimaryColor} color="white" _hover={{bg: useColorModeValue('purple.500', 'purple.200')}} size="sm" leftIcon={<Icon as={FaPlus} />}>
-                          Add Material
-                        </Button>
-                      </Flex>
-                    </CardHeader>
-                    <CardBody>
-                      <VStack spacing={4} align="stretch">
-                        {selectedCourseData.units.map(unit => (
-                          <Box
-                            key={unit.id}
-                            p={4}
-                            bg={subtleBg}
-                            borderRadius="lg"
-                            borderWidth="1px"
-                            borderColor={subtleBorderColor}
-                          >
-                            <Flex justify="space-between" align="center" mb={2} wrap="wrap" gap={2}>
-                              <Heading size="md" color={textColor}>{unit.title}</Heading>
-                              <Text fontSize="sm" color={subtleTextColor} fontWeight="medium">
-                                {unit.completion}% Complete
-                              </Text>
-                            </Flex>
-                            <Progress 
-                              value={unit.completion} 
-                              size="sm" 
-                              colorScheme="purple"
-                              borderRadius="full" 
-                              mb={3}
-                              bg={useColorModeValue('purple.100', 'purple.700')}
-                            />
-                            <Flex justify="flex-end">
-                              <HStack spacing={2}>
-                                <Button size="xs" colorScheme="purple" variant="outline">
-                                  Materials
-                                </Button>
-                                <Button size="xs" bg={teacherPrimaryColor} color="white" _hover={{bg: useColorModeValue('purple.500', 'purple.200')}}>
-                                  Manage
-                                </Button>
-                              </HStack>
-                            </Flex>
+                <Alert status="info" mb={6}>
+                  <AlertIcon />
+                  <Box>
+                    <AlertTitle>Analytics Coming Soon!</AlertTitle>
+                    <AlertDescription>
+                      Detailed analytics and performance tracking will be available in the next update.
+                    </AlertDescription>
+                  </Box>
+                </Alert>
                           </Box>
-                        ))}
-                      </VStack>
-                    </CardBody>
-                  </Card>
                 </TabPanel>
               </TabPanels>
             </Tabs>
-          </GridItem>
 
-          {/* Right Column - Schedule & Actions */}
-          <GridItem>
-            <VStack spacing={{ base: 6, md: 8 }} align="stretch">
-              {/* Schedule */}
-              <Card bg={teacherCardBg} boxShadow="lg" borderRadius="xl">
-                <CardHeader>
-                  <HStack spacing={3}>
-                    <Icon as={FaCalendarAlt} color={teacherSecondaryColor} boxSize={6} /> {/* Teacher secondary */}
-                    <Heading size="lg" color={generalHeadingColor}>Upcoming Schedule</Heading>
-                  </HStack>
-                </CardHeader>
-                <CardBody>
-                  <VStack spacing={4} align="stretch">
-                    {upcomingSchedule.map(item => (
-                      <Box 
-                        key={item.id} 
-                        p={4}
-                        bg={
-                          item.type === 'Class' ? useColorModeValue('purple.50', 'purple.800') : // teacher primary shade
-                          item.type === 'Lab Session' ? useColorModeValue('green.50', 'green.800') : // teacher secondary shade
-                          item.type === 'Meeting' ? useColorModeValue('gray.100', 'gray.700') : subtleBg
-                        } 
-                        borderRadius="lg"
-                      >
-                        <Flex justify="space-between" align="center" mb={1} wrap="wrap" gap={1}>
-                          <Heading size="sm" color={textColor}>{item.title}</Heading>
-                          <Badge 
-                            variant="subtle"
-                            colorScheme={
-                              item.type === 'Class' ? 'purple' :
-                              item.type === 'Lab Session' ? 'green' : 
-                              item.type === 'Meeting' ? 'gray' : 'gray'
-                            }
-                            px={2} py={0.5} borderRadius="md"
-                          >
-                            {item.type}
-                          </Badge>
-                        </Flex>
-                        <Flex justify="space-between" align="center" color={subtleTextColor} wrap="wrap" gap={1}>
-                          <Text fontSize="sm">{item.date}</Text>
-                          <Text fontSize="sm">{item.time}</Text>
-                        </Flex>
-                        <Text fontSize="xs" mt={1} color={subtleTextColor}>
-                          Location: {item.location}
-                        </Text>
-                      </Box>
+        {/* Create Class Modal */}
+        <Modal isOpen={isCreateClassOpen} onClose={() => setIsCreateClassOpen(false)}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Create New Class</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Stack spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel>Class Name</FormLabel>
+                  <Input
+                    value={newClass.name}
+                    onChange={(e) => setNewClass({ ...newClass, name: e.target.value })}
+                    placeholder="e.g., Advanced Mathematics"
+                  />
+                </FormControl>
+                
+                <FormControl isRequired>
+                  <FormLabel>Subject</FormLabel>
+                  <Select
+                    value={newClass.subject}
+                    onChange={(e) => setNewClass({ ...newClass, subject: e.target.value })}
+                    placeholder="Select subject"
+                  >
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Biology">Biology</option>
+                    <option value="Economics">Economics</option>
+                    <option value="English">English</option>
+                    <option value="History">History</option>
+                    <option value="Geography">Geography</option>
+                  </Select>
+                </FormControl>
+                
+                <FormControl>
+                  <FormLabel>Description</FormLabel>
+                  <Textarea
+                    value={newClass.description}
+                    onChange={(e) => setNewClass({ ...newClass, description: e.target.value })}
+                    placeholder="Brief description of the class..."
+                    rows={3}
+                  />
+                </FormControl>
+                
+                <FormControl isRequired>
+                  <FormLabel>Maximum Students</FormLabel>
+                  <Input
+                    type="number"
+                    value={newClass.maxStudents}
+                    onChange={(e) => setNewClass({ ...newClass, maxStudents: parseInt(e.target.value) })}
+                    min={1}
+                    max={100}
+                  />
+                </FormControl>
+
+                <Alert status="info">
+                  <AlertIcon />
+                  <AlertDescription>
+                    A unique class code will be automatically generated for students to join.
+                  </AlertDescription>
+                </Alert>
+              </Stack>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="ghost" mr={3} onClick={() => setIsCreateClassOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                colorScheme="purple" 
+                onClick={createClass}
+                isDisabled={!newClass.name || !newClass.subject}
+              >
+                Create Class
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Add Student Modal */}
+        <Modal isOpen={isAddStudentOpen} onClose={() => setIsAddStudentOpen(false)}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>
+              Add Student to {selectedClass?.name}
+            </ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Stack spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel>Student Email</FormLabel>
+                  <Input
+                    type="email"
+                    value={newStudent.email}
+                    onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                    placeholder="student@example.com"
+                  />
+                </FormControl>
+                
+                <Alert status="info">
+                  <AlertIcon />
+                  <AlertDescription>
+                    The student must already have an account with this email address.
+                  </AlertDescription>
+                </Alert>
+              </Stack>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="ghost" mr={3} onClick={() => setIsAddStudentOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                colorScheme="purple" 
+                onClick={addStudentToClass}
+                isDisabled={!newStudent.email}
+              >
+                Add Student
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Create Assignment Modal */}
+        <Modal isOpen={isCreateAssignmentOpen} onClose={() => setIsCreateAssignmentOpen(false)} size="xl">
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Create New Assignment</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Stack spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel>Assignment Title</FormLabel>
+                  <Input
+                    value={newAssignment.title}
+                    onChange={(e) => setNewAssignment({...newAssignment, title: e.target.value})}
+                    placeholder="Enter assignment title"
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Description</FormLabel>
+                  <Textarea
+                    value={newAssignment.description}
+                    onChange={(e) => setNewAssignment({...newAssignment, description: e.target.value})}
+                    placeholder="Enter assignment description"
+                    rows={3}
+                  />
+                </FormControl>
+
+                <FormControl isRequired>
+                  <FormLabel>Class</FormLabel>
+                  <Select
+                    value={newAssignment.classId}
+                    onChange={(e) => setNewAssignment({...newAssignment, classId: e.target.value})}
+                    placeholder="Select a class"
+                  >
+                    {classes.map((cls) => (
+                      <option key={cls.id} value={cls.id}>
+                        {cls.name} - {cls.subject}
+                      </option>
                     ))}
-                    <Button size="sm" colorScheme="green" variant="outline" w="full" mt={2}> {/* teacher secondary */}
-                      View Full Schedule
-                    </Button>
-                  </VStack>
-                </CardBody>
-              </Card>
+                  </Select>
+                </FormControl>
 
-              {/* Course Analytics */}
-              <Card bg={teacherCardBg} boxShadow="lg" borderRadius="xl">
-                <CardHeader>
-                  <HStack spacing={3}>
-                    <Icon as={FaChartLine} color={teacherPrimaryColor} boxSize={6} />
-                    <Heading size="lg" color={generalHeadingColor}>Course Analytics</Heading>
-                  </HStack>
-                </CardHeader>
-                <CardBody>
-                  <SimpleGrid columns={{base: 1, sm:2}} spacing={4} mb={4}>
-                    <Stat>
-                      <StatLabel color={subtleTextColor}>Average Grade</StatLabel>
-                      <StatNumber color={teacherPrimaryColor}>{selectedCourseData.avgPerformance}%</StatNumber>
-                      <StatHelpText>
-                        <Badge variant="subtle" colorScheme={selectedCourseData.avgPerformance >= 80 ? 'green' : selectedCourseData.avgPerformance >= 70 ? 'purple' : 'yellow'}>
-                          {selectedCourseData.avgPerformance >= 80 ? 'Excellent' : selectedCourseData.avgPerformance >= 70 ? 'Good' : 'Fair'}
-                        </Badge>
-                      </StatHelpText>
-                    </Stat>
-                    <Stat>
-                      <StatLabel color={subtleTextColor}>Attendance Rate</StatLabel>
-                      <StatNumber color={teacherPrimaryColor}>91%</StatNumber> {/* Mock data */}
-                      <StatHelpText>
-                        <Badge variant="subtle" colorScheme="green">Above Target</Badge>
-                      </StatHelpText>
-                    </Stat>
-                    <Stat>
-                      <StatLabel color={subtleTextColor}>Completion Rate</StatLabel>
-                      <StatNumber color={teacherPrimaryColor}>68%</StatNumber> {/* Mock data */}
-                      <StatHelpText color={subtleTextColor}>Course Material</StatHelpText>
-                    </Stat>
-                    <Stat>
-                      <StatLabel color={subtleTextColor}>Participation</StatLabel>
-                      <StatNumber color={teacherPrimaryColor}>76%</StatNumber> {/* Mock data */}
-                      <StatHelpText color={subtleTextColor}>Active Students</StatHelpText>
-                    </Stat>
-                  </SimpleGrid>
-                  <Button size="sm" colorScheme="purple" variant="outline" w="full">
-                    View Detailed Analytics
-                  </Button>
-                </CardBody>
-              </Card>
+                <FormControl isRequired>
+                  <FormLabel>Due Date</FormLabel>
+                  <Input
+                    type="datetime-local"
+                    value={newAssignment.dueDate}
+                    onChange={(e) => setNewAssignment({...newAssignment, dueDate: e.target.value})}
+                  />
+                </FormControl>
 
-              {/* Teacher Actions */}
-              <Card bg={teacherCardBg} boxShadow="lg" borderRadius="xl">
-                <CardHeader>
-                  <HStack spacing={3}>
-                    <Icon as={FaChalkboardTeacher} color={teacherPrimaryColor} boxSize={6} />
-                    <Heading size="lg" color={generalHeadingColor}>Quick Actions</Heading>
-                  </HStack>
-                </CardHeader>
-                <CardBody>
-                  <VStack spacing={3} align="stretch">
-                    <Button bg={teacherPrimaryColor} color="white" _hover={{bg: useColorModeValue('purple.500', 'purple.200')}} leftIcon={<Icon as={FaEnvelope} />}>
-                      Message Students
+                <FormControl isRequired>
+                  <FormLabel>Total Points</FormLabel>
+                  <Input
+                    type="number"
+                    value={newAssignment.totalPoints}
+                    onChange={(e) => setNewAssignment({...newAssignment, totalPoints: parseInt(e.target.value)})}
+                    min="1"
+                    max="1000"
+                  />
+                </FormControl>
+
+                <FormControl isRequired>
+                  <FormLabel>Assignment Type</FormLabel>
+                  <Select
+                    value={newAssignment.assignmentType}
+                    onChange={(e) => setNewAssignment({...newAssignment, assignmentType: e.target.value})}
+                  >
+                    <option value="quiz">Quiz</option>
+                    <option value="homework">Homework</option>
+                    <option value="project">Project</option>
+                    <option value="exam">Exam</option>
+                  </Select>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Instructions</FormLabel>
+                  <Textarea
+                    value={newAssignment.instructions}
+                    onChange={(e) => setNewAssignment({...newAssignment, instructions: e.target.value})}
+                    placeholder="Enter detailed instructions for students"
+                    rows={4}
+                  />
+                </FormControl>
+              </Stack>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="ghost" mr={3} onClick={() => setIsCreateAssignmentOpen(false)}>
+                Cancel
                     </Button>
-                    <Button colorScheme="purple" variant="outline" leftIcon={<Icon as={FaFileAlt} />}>
-                      Create Lesson Plan
+              <Button 
+                colorScheme="purple" 
+                onClick={createAssignment}
+                isDisabled={!newAssignment.title || !newAssignment.classId || !newAssignment.dueDate}
+              >
+                Create Assignment
                     </Button>
-                    <Button colorScheme="purple" variant="outline" leftIcon={<Icon as={FaClipboardList} />}>
-                      Create Assessment
-                    </Button>
-                    <Button colorScheme="purple" variant="outline" leftIcon={<Icon as={FaUserFriends} />}>
-                      Schedule Parent Meeting
-                    </Button>
-                  </VStack>
-                </CardBody>
-              </Card>
-            </VStack>
-          </GridItem>
-        </Grid>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </Container>
     </Box>
   );

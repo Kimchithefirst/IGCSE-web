@@ -47,7 +47,10 @@ const RoleSwitcher = () => {
           size="sm" 
           colorScheme={user?.role === 'student' ? 'blue' : 'gray'} 
           leftIcon={<Icon as={FaUserGraduate} />}
-          onClick={() => switchRole('student')}
+          onClick={() => {
+            console.log('Student button clicked');
+            switchRole('student');
+          }}
           justifyContent="flex-start"
         >
           Student
@@ -56,7 +59,10 @@ const RoleSwitcher = () => {
           size="sm" 
           colorScheme={user?.role === 'parent' ? 'blue' : 'gray'} 
           leftIcon={<Icon as={FaUserTie} />}
-          onClick={() => switchRole('parent')}
+          onClick={() => {
+            console.log('Parent button clicked');
+            switchRole('parent');
+          }}
           justifyContent="flex-start"
         >
           Parent
@@ -65,7 +71,10 @@ const RoleSwitcher = () => {
           size="sm" 
           colorScheme={user?.role === 'teacher' ? 'blue' : 'gray'} 
           leftIcon={<Icon as={FaChalkboardTeacher} />}
-          onClick={() => switchRole('teacher')}
+          onClick={() => {
+            console.log('Teacher button clicked');
+            switchRole('teacher');
+          }}
           justifyContent="flex-start"
         >
           Teacher

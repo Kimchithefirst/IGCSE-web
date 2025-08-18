@@ -24,6 +24,8 @@ import { SupabaseAuthProvider, useSupabaseAuth } from './context/SupabaseAuthCon
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useSupabaseAuth();
   
+  console.log('ProtectedRoute - user:', user, 'loading:', loading);
+  
   if (loading) {
     return (
       <Box 
@@ -60,18 +62,21 @@ const DashboardRouter = () => {
 
   switch (user.role) {
     case 'parent':
-      return <ParentDashboard />;
+      return <Navigate to="/pdashboard" replace />;
     case 'teacher':
-      return <TeacherDashboard />;
+      return <Navigate to="/tdashboard" replace />;
     case 'admin':
-      return <TeacherDashboard />; // Admin uses teacher dashboard for now
+      return <Navigate to="/tdashboard" replace />; // Admin uses teacher dashboard
     case 'student':
     default:
-      return <StudentDashboard />;
+      return <Navigate to="/dashboard" replace />;
   }
 };
 
 function AppContent() {
+  // Temporary debug logging
+  console.log('AppContent rendered');
+  
   return (
     <Box minH="100vh">
       <Navbar />
@@ -79,19 +84,10 @@ function AppContent() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        {/* Dynamic dashboard based on user role */}
-        <Route 
-          path="/dashboard" 
-          element={
-            <ProtectedRoute>
-              <DashboardRouter />
-            </ProtectedRoute>
-          } 
-        />
         
-        {/* Specific role-based dashboards */}
+        {/* Role-specific dashboards */}
         <Route
-          path="/student-dashboard"
+          path="/dashboard"
           element={
             <ProtectedRoute allowedRoles={['student']}>
               <StudentDashboard />
@@ -99,21 +95,33 @@ function AppContent() {
           }
         />
         <Route
-          path="/parent-dashboard"
-          element={
-            <ProtectedRoute allowedRoles={['parent']}>
-              <ParentDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/teacher-dashboard"
+          path="/tdashboard"
           element={
             <ProtectedRoute allowedRoles={['teacher', 'admin']}>
               <TeacherDashboard />
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/pdashboard"
+          element={
+            <ProtectedRoute allowedRoles={['parent']}>
+              <ParentDashboard />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Legacy dashboard route - redirects based on role */}
+        <Route 
+          path="/legacy-dashboard" 
+          element={
+            <ProtectedRoute>
+              <DashboardRouter />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Course routes */}
         <Route
           path="/courses"
           element={
@@ -147,6 +155,14 @@ function AppContent() {
           }
         />
         <Route
+          path="/subject-selection"
+          element={
+            <ProtectedRoute>
+              <SubjectSelection />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/exam-results"
           element={
             <ProtectedRoute>
@@ -155,26 +171,22 @@ function AppContent() {
           }
         />
         <Route
-          path="/igcse-papers"
+          path="/igcse-list"
           element={
-            <ProtectedRoute> {/* Assuming it should be protected */}
+            <ProtectedRoute>
               <IgcseList />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/subject-selection"
+          path="/role-switcher"
           element={
             <ProtectedRoute>
-              <SubjectSelection />
+              <RoleSwitcher />
             </ProtectedRoute>
           }
         />
-        {/* Add more protected routes as needed */}
       </Routes>
-      
-      {/* Role switcher for development */}
-      {import.meta.env.DEV && <RoleSwitcher />}
     </Box>
   );
 }

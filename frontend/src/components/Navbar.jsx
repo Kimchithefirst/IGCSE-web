@@ -62,6 +62,11 @@ const Navbar = () => {
   const theme = useTheme(); // Added
   const navbarBg = useColorModeValue(theme.colors.defaults.cardBg.default, theme.colors.defaults.cardBg._dark); // Updated
   const logoColor = useColorModeValue('brand.700', 'brand.300'); // Theme logo color - remains brand for now
+  const menuListBorderColor = useColorModeValue('gray.200', 'gray.700');
+  const collapseBorderColor = useColorModeValue('gray.200', 'gray.700');
+  const signoutHoverBg = useColorModeValue('red.100', 'red.700');
+  const signoutHoverColor = useColorModeValue('red.700', 'white');
+  const signoutTextColor = useColorModeValue('gray.600', 'gray.200');
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   
@@ -76,9 +81,9 @@ const Navbar = () => {
   const getDashboardLink = () => {
     switch(userRole) {
       case 'parent':
-        return '/parent-dashboard';
+        return '/pdashboard';
       case 'teacher':
-        return '/teacher-dashboard';
+        return '/tdashboard';
       default:
         return '/dashboard';
     }
@@ -161,14 +166,14 @@ const Navbar = () => {
                     color="white"
                   />
                 </MenuButton>
-                <MenuList boxShadow="lg" borderColor={useColorModeValue('gray.200', 'gray.700')}>
+                <MenuList boxShadow="lg" borderColor={menuListBorderColor}>
                   <MenuItem icon={<Icon as={FaUser} color="brand.600" />}>Profile</MenuItem>
                   <MenuItem icon={<Icon as={FaBook} color="brand.600" />}>My Courses</MenuItem>
                   {userRole === 'parent' && (
                     <MenuItem 
                       icon={<Icon as={FaUserGraduate} color="brand.600" />}
                       as={RouterLink} 
-                      to="/parent-dashboard"
+                      to="/pdashboard"
                     >
                       Parent Dashboard
                     </MenuItem>
@@ -186,7 +191,7 @@ const Navbar = () => {
                     <MenuItem 
                       icon={<Icon as={FaChalkboardTeacher} color="brand.600" />}
                       as={RouterLink} 
-                      to="/teacher-dashboard"
+                      to="/tdashboard"
                     >
                       Teacher Dashboard
                     </MenuItem>
@@ -213,7 +218,7 @@ const Navbar = () => {
             pb={4}
             display={{ md: 'none' }}
             borderTopWidth="1px"
-            borderColor={useColorModeValue('gray.200', 'gray.700')}
+            borderColor={collapseBorderColor}
             mt={2} // Margin top for separation
           >
             <Stack as={'nav'} spacing={3} pt={3}> {/* Adjusted spacing */}
@@ -233,14 +238,14 @@ const Navbar = () => {
                     rounded="md"
                     _hover={{
                       textDecoration: 'none',
-                      bg: useColorModeValue('red.100', 'red.700'), // Distinct hover for signout
-                      color: useColorModeValue('red.700', 'white'),
+                      bg: signoutHoverBg, // Distinct hover for signout
+                      color: signoutHoverColor,
                     }}
                     display="flex"
                     alignItems="center"
                     fontWeight="medium"
                     textAlign="left" // Align text to left
-                    color={useColorModeValue('gray.600', 'gray.200')} // Default text color
+                    color={signoutTextColor} // Default text color
                   >
                     <Icon as={FaSignOutAlt} mr={2} color="red.500" />
                     Sign Out

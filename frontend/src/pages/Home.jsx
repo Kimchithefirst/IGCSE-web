@@ -28,8 +28,31 @@ const Feature = ({ icon, title, text }) => {
 // Local CourseCard definition is removed
 
 const Home = () => {
-  const { user } = useAuth();
   const [showBackendTest, setShowBackendTest] = React.useState(false);
+  const [authError, setAuthError] = React.useState(false);
+  const [forceRender, setForceRender] = React.useState(false);
+  
+  // Try to get user from auth context with error handling
+  let user = null;
+  try {
+    const authContext = useAuth();
+    user = authContext.user;
+    console.log('Home component rendered, user:', user, 'loading:', authContext.loading);
+    
+    // Force render after a short delay if still loading
+    if (authContext.loading && !forceRender) {
+      setTimeout(() => {
+        console.log('Forcing render after timeout');
+        setForceRender(true);
+      }, 3000);
+    }
+  } catch (error) {
+    console.error('Error accessing auth context:', error);
+    setAuthError(true);
+  }
+  
+  // Fallback if auth context fails
+  const safeUser = user || null;
 
   // Hidden keyboard shortcut to show backend test (Ctrl+Shift+D for Debug)
   React.useEffect(() => {
@@ -45,6 +68,32 @@ const Home = () => {
 
   return (
     <Box>
+      {/* Error fallback */}
+      {authError && (
+        <Box 
+          bg="red.100" 
+          color="red.800" 
+          p={4} 
+          textAlign="center"
+          fontSize="lg"
+        >
+          Authentication error. Please refresh the page.
+        </Box>
+      )}
+      
+      {/* Loading fallback - show welcome page even if auth is loading */}
+      {!authError && !safeUser && (
+        <Box 
+          bg="blue.100" 
+          color="blue.800" 
+          p={2} 
+          textAlign="center"
+          fontSize="sm"
+        >
+          Loading user data... (showing welcome page)
+        </Box>
+      )}
+      
       {/* Backend Connection Test - Hidden by default, toggle with Ctrl+Shift+D */}
       {showBackendTest && (
         <Container maxW="container.xl" pt={20}>
@@ -85,7 +134,7 @@ const Home = () => {
                   color="white" // White text for better contrast on gradient
                   lineHeight="1.1" // Adjusted line height
                 >
-                  {user ? `Welcome back, ${user.name}!` : 'Master Your IGCSE Exams with Personalised Prep'}
+                  {safeUser ? `Welcome back, ${safeUser.name}!` : 'Master Your IGCSE Exams with Personalised Prep'}
                 </Heading>
                 <Text
                   fontSize={{ base: "lg", md: "xl" }} // Responsive font size
@@ -97,20 +146,20 @@ const Home = () => {
                 <Stack direction={{ base: 'column', sm: 'row' }} spacing={6} w={{ base: '100%', sm: 'auto' }} justify={{base: "center", md: "start"}}>
                   <Button
                     as={RouterLink}
-                    to={user ? "/exam-simulation" : "/register"} // Dynamic primary CTA
+                    to={safeUser ? "/exam-simulation" : "/register"} // Dynamic primary CTA
                     size="lg"
-                    colorScheme={user ? "green" : "yellow"} // Different color for logged in user
+                    colorScheme={safeUser ? "green" : "yellow"} // Different color for logged in user
                     fontWeight="bold"
                     px={10} // Increased padding
                     py={7} // Increased padding
-                    leftIcon={user ? <Icon as={FaClock} /> : undefined}
+                    leftIcon={safeUser ? <Icon as={FaClock} /> : undefined}
                     _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
                   >
-                    {user ? "Start Exam Simulation" : "Get Started Free"}
+                    {safeUser ? "Start Exam Simulation" : "Get Started Free"}
                   </Button>
                   <Button
                     as={RouterLink}
-                    to={user ? "/dashboard" : "/login"} // Secondary CTA
+                    to={safeUser ? "/dashboard" : "/login"} // Secondary CTA
                     size="lg"
                     variant="outline"
                     color="white"
@@ -120,7 +169,7 @@ const Home = () => {
                     py={7} // Increased padding
                     _hover={{ bg: "whiteAlpha.200" }}
                   >
-                    {user ? "My Dashboard" : "Sign In"}
+                    {safeUser ? "My Dashboard" : "Sign In"}
                   </Button>
                 </Stack>
               </VStack>
@@ -258,7 +307,7 @@ const Home = () => {
             >
               Explore All Courses
             </Button>
-            {user && (
+            {safeUser && (
               <Button
                 size="lg"
                 colorScheme="green"
@@ -301,7 +350,7 @@ const Home = () => {
               >
                 Sign In
               </Button>
-              {user && (
+              {safeUser && (
                 <Button
                   as={RouterLink}
                   to="/exam-simulation"
