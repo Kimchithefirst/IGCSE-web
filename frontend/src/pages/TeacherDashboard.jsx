@@ -680,8 +680,8 @@ const TeacherDashboard = () => {
                                   cls.students?.some(s => s.student?.id === student.id)
                                 ).length} classes
                               </Badge>
-                            </Td>
-                            <Td>
+                                </Td>
+                                <Td>
                               <Button size="sm" variant="ghost" colorScheme="purple">
                                 <Icon as={FaEye} />
                                     </Button>
