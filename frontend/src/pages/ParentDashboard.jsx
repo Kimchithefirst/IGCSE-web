@@ -162,25 +162,10 @@ import {
   FaFastBackward,
   FaExpand,
   FaCompress,
-  FaMaximize,
-  FaMinimize,
   FaWindowMaximize,
   FaWindowMinimize,
   FaWindowRestore,
-  FaWindowClose,
-  FaWindowClose as FaClose,
-  FaWindowMinimize as FaMinus,
-  FaWindowMaximize as FaMaximize,
-  FaWindowRestore as FaRestore,
-  FaWindowClose as FaX,
-  FaWindowMinimize as FaMinimize,
-  FaWindowMaximize as FaMaximize2,
-  FaWindowRestore as FaRestore2,
-  FaWindowClose as FaX2,
-  FaWindowMinimize as FaMinimize2,
-  FaWindowMaximize as FaMaximize3,
-  FaWindowRestore as FaRestore3,
-  FaWindowClose as FaX3
+  FaWindowClose
 } from 'react-icons/fa';
 import { useSupabaseAuth as useAuth } from '../context/SupabaseAuthContext';
 import { supabase } from '../lib/supabase';
